@@ -1,0 +1,49 @@
+# Development files
+node_modules/
+.env
+.env.local
+.env.development
+.env.test
+
+# Source files (not needed in production)
+client/src/
+server/
+shared/
+drizzle/
+*.ts
+*.tsx
+*.js.map
+
+# Build artifacts
+dist/
+build/
+
+# Development tools
+vite.config.ts
+vite.config.production.ts
+tsconfig.json
+tailwind.config.ts
+postcss.config.js
+components.json
+
+# Git files
+.git/
+.gitignore
+
+# Documentation
+*.md
+DYNAMIC_AUTH_GUIDE.md
+FIXES_SUMMARY.md
+PRODUCTION_SETUP.md
+SECURITY.md
+
+# Test files
+websocket-test.html
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS generated files
+.DS_Store
+Thumbs.db

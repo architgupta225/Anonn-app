@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "unique_user_bowl_favorite" ON "bowl_favorites" USING btree ("user_id","bowl_id");

@@ -1,0 +1,55 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1755011076965,
+      "tag": "20250812150436_boring_genesis",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1755013067312,
+      "tag": "20250812153747_sudden_king_cobra",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1755065101476,
+      "tag": "20250813060501_natural_vermin",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1755069362805,
+      "tag": "20250813071602_red_scarecrow",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1755689203957,
+      "tag": "20250820112643_jittery_phantom_reporter",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1756547799224,
+      "tag": "20250830095639_ambiguous_thor_girl",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1757571247904,
+      "tag": "20250911061407_flaky_scarlet_spider",
+      "breakpoints": true
+    }
+  ]
+}

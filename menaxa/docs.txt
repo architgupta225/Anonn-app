@@ -1,0 +1,218 @@
+Initial Setup
+
+Platform Fee: 2% (200 basis points)
+USDC Decimals: 6 (so 1 USDC = 1,000,000 units)
+Admin creates a company called "TechCorp"
+
+
+Scenario Timeline
+Stage 1: Empty Market
+Company State:
+- Positive Pool: 0 USDC
+- Negative Pool: 0 USDC
+- Reputation Score: 0 (neutral)
+- Share Prices: 0.50 USDC each (default 50-50)
+Stage 2: Alice Makes First Investment
+Alice invests 1,000 USDC in POSITIVE reputation
+Transaction:
+- Investment: 1,000 USDC
+- Platform Fee (2%): 20 USDC
+- Net Investment: 980 USDC
+- Shares Received: 980 shares (constant-sum model)
+
+Company State After:
+- Positive Pool: 980 USDC
+- Negative Pool: 0 USDC
+- Positive Shares: 980
+- Negative Shares: 0
+- Reputation Score: +100 (maximum positive)
+- New Share Prices:
+  - Positive: 1.00 USDC (100% of pool)
+  - Negative: 0.00 USDC (0% of pool)
+
+Alice's Position:
+- Positive Shares: 980
+- Positive Invested: 980 USDC
+- Current Value: 980 × 1.00 = 980 USDC
+- P&L: 0 USDC (break-even)
+Stage 3: Bob Invests in Negative
+Bob invests 500 USDC in NEGATIVE reputation
+Transaction:
+- Investment: 500 USDC
+- Platform Fee (2%): 10 USDC
+- Net Investment: 490 USDC
+- Shares Received: 490 shares
+
+Company State After:
+- Positive Pool: 980 USDC
+- Negative Pool: 490 USDC
+- Total Pool: 1,470 USDC
+- Reputation Score: (980-490)/1470 × 100 = +33
+- New Share Prices:
+  - Positive: 980/1470 = 0.667 USDC (66.7%)
+  - Negative: 490/1470 = 0.333 USDC (33.3%)
+
+Impact on Alice:
+- Still has: 980 shares
+- New Value: 980 × 0.667 = 653.66 USDC
+- P&L: 653.66 - 980 = -326.34 USDC (LOSS of 33.3%)
+
+Bob's Position:
+- Negative Shares: 490
+- Negative Invested: 490 USDC
+- Current Value: 490 × 0.333 = 163.17 USDC
+- P&L: 163.17 - 490 = -326.83 USDC (LOSS of 66.7%)
+Key Insight: Both users show a loss immediately after Bob's investment because the market became two-sided. This is normal in constant-sum markets.
+Stage 4: Carol Joins Positive Side
+Carol invests 2,000 USDC in POSITIVE reputation
+Transaction:
+- Investment: 2,000 USDC
+- Platform Fee (2%): 40 USDC
+- Net Investment: 1,960 USDC
+- Shares Received: 1,960 shares
+
+Company State After:
+- Positive Pool: 980 + 1,960 = 2,940 USDC
+- Negative Pool: 490 USDC
+- Total Pool: 3,430 USDC
+- Reputation Score: (2940-490)/3430 × 100 = +71
+- New Share Prices:
+  - Positive: 2940/3430 = 0.857 USDC (85.7%)
+  - Negative: 490/3430 = 0.143 USDC (14.3%)
+
+Impact on All Users:
+Alice:
+- Shares: 980
+- New Value: 980 × 0.857 = 839.86 USDC
+- P&L: 839.86 - 980 = -140.14 USDC (LOSS of 14.3%)
+
+Bob:
+- Shares: 490
+- New Value: 490 × 0.143 = 70.07 USDC
+- P&L: 70.07 - 490 = -419.93 USDC (LOSS of 85.7%)
+
+Carol:
+- Shares: 1,960
+- New Value: 1,960 × 0.857 = 1,679.72 USDC
+- P&L: 1,679.72 - 1,960 = -280.28 USDC (LOSS of 14.3%)
+Stage 5: David Makes Large Negative Investment
+David invests 3,000 USDC in NEGATIVE reputation
+Transaction:
+- Investment: 3,000 USDC
+- Platform Fee (2%): 60 USDC
+- Net Investment: 2,940 USDC
+- Shares Received: 2,940 shares
+
+Company State After:
+- Positive Pool: 2,940 USDC
+- Negative Pool: 490 + 2,940 = 3,430 USDC
+- Total Pool: 6,370 USDC
+- Reputation Score: (2940-3430)/6370 × 100 = -8 (slightly negative)
+- New Share Prices:
+  - Positive: 2940/6370 = 0.461 USDC (46.1%)
+  - Negative: 3430/6370 = 0.539 USDC (53.9%)
+
+Impact on All Users:
+Alice (Positive):
+- Value: 980 × 0.461 = 451.78 USDC
+- P&L: -528.22 USDC (LOSS of 53.9%)
+
+Bob (Negative):
+- Value: 490 × 0.539 = 264.11 USDC
+- P&L: -225.89 USDC (LOSS of 46.1%)
+
+Carol (Positive):
+- Value: 1,960 × 0.461 = 903.56 USDC
+- P&L: -1,056.44 USDC (LOSS of 53.9%)
+
+David (Negative):
+- Value: 2,940 × 0.539 = 1,584.66 USDC
+- P&L: -1,355.34 USDC (LOSS of 46.1%)
+Stage 6: Bob Withdraws 50% of Position
+Bob withdraws 50% of his negative position
+Withdrawal Calculation:
+- Shares to burn: 490 × 50% = 245 shares
+- Current negative price: 0.539 USDC
+- Payout: 245 × 0.539 = 132.06 USDC
+
+Company State After Withdrawal:
+- Positive Pool: 2,940 USDC (unchanged)
+- Negative Pool: 3,430 - 132.06 = 3,297.94 USDC
+- Negative Shares: 3,430 - 245 = 3,185
+- Total Pool: 6,237.94 USDC
+- Reputation Score: (2940-3297.94)/6237.94 × 100 = -6
+- New Share Prices:
+  - Positive: 2940/6237.94 = 0.471 USDC
+  - Negative: 3297.94/6237.94 = 0.529 USDC
+
+Bob's Final Position:
+- Shares Remaining: 245
+- Invested Remaining: 245 USDC (proportional)
+- Cash Received: 132.06 USDC
+- Remaining Value: 245 × 0.529 = 129.61 USDC
+- Total Value: 132.06 + 129.61 = 261.67 USDC
+- Total P&L: 261.67 - 490 = -228.33 USDC (LOSS of 46.6%)
+
+Key Mechanics Explained
+1. Constant-Sum Model
+
+Shares received always equal net investment (after fees)
+This ensures pool solvency: total shares never exceed total pool
+Simple and predictable for users
+
+2. Price Discovery Through Pool Ratios
+
+Positive Price = Positive Pool / Total Pool
+Negative Price = Negative Pool / Total Pool
+Prices always sum to 1.00 USDC
+
+3. Reputation Score Calculation
+Score = (Positive Pool - Negative Pool) / Total Pool × 100
+- Ranges from -100 (all negative) to +100 (all positive)
+- 0 means perfectly balanced pools
+4. How Investments Affect Others
+When someone invests in POSITIVE:
+
+Increases positive pool → positive price rises
+Reputation becomes more positive
+Existing positive holders see price appreciation
+Existing negative holders see price depreciation
+
+When someone invests in NEGATIVE:
+
+Opposite effect occurs
+
+5. Profit/Loss Dynamics
+Winners:
+
+Early investors on the side that becomes dominant
+Those who invest when reputation is wrongly skewed
+
+Losers:
+
+Late investors on the losing side
+Those who invest at peak reputation extremes
+
+6. Market Equilibrium
+
+The market finds equilibrium when the reputation accurately reflects collective sentiment
+Arbitrageurs can profit from extreme reputations by betting against them
+The constant-sum model ensures zero-sum dynamics (excluding fees)
+
+7. Strategic Considerations
+For Users:
+
+Best entry: When reputation is at extremes but you believe it will reverse
+Best exit: When your side has gained dominance
+Risk: The crowd can stay irrational longer than you can stay solvent
+
+For the Platform:
+
+Fees collected on every investment
+No risk exposure (fully collateralized)
+Reputation becomes a real-time sentiment indicator
+
+This system creates a dynamic, self-balancing market where company reputation is determined by actual capital allocation rather than votes or ratings, making it costly to manipulate and providing real-time price discovery for reputation value.
+
+
+

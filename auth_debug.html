@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Anonn Auth Debug</title>
+</head>
+<body>
+    <h1>Anonn Authentication Debug</h1>
+    
+    <div id="status">Loading...</div>
+    <br>
+    
+    <button onclick="testAuth()">Test Authentication</button>
+    <button onclick="testProfileUpdate()">Test Profile Update</button>
+    <button onclick="testBowlFollow()">Test Bowl Follow</button>
+    
+    <div id="output" style="margin-top: 20px; padding: 10px; background: #f0f0f0; white-space: pre-wrap;"></div>
+
+    <script>
+        async function log(message) {
+            const output = document.getElementById('output');
+            output.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+        }
+
+        async function getToken() {
+            if (typeof window !== 'undefined' && window.__getDynamicToken) {
+                try {
+                    const token = await window.__getDynamicToken();
+                    log('Token retrieved: ' + (token ? token.substring(0, 20) + '...' : 'null'));
+                    return token;
+                } catch (error) {
+                    log('Error getting token: ' + error.message);
+                    return null;
+                }
+            } else {
+                log('__getDynamicToken not available');
+                return null;
+            }
+        }
+
+        async function testAuth() {
+            log('=== Testing Authentication ===');
+            
+            // Test token retrieval
+            const token = await getToken();
+            
+            if (!token) {
+                log('No token available - user not authenticated');
+                return;
+            }
+
+            // Test auth/user endpoint
+            try {
+                const response = await fetch('/api/auth/user', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                
+                log('Auth endpoint status: ' + response.status);
+                const data = await response.text();
+                log('Auth endpoint response: ' + data);
+            } catch (error) {
+                log('Auth endpoint error: ' + error.message);
+            }
+        }
+
+        async function testProfileUpdate() {
+            log('=== Testing Profile Update ===');
+            
+            const token = await getToken();
+            if (!token) {
+                log('No token available');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/users/me', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({
+                        firstName: 'Test',
+                        lastName: 'User'
+                    })
+                });
+                
+                log('Profile update status: ' + response.status);
+                const data = await response.text();
+                log('Profile update response: ' + data);
+            } catch (error) {
+                log('Profile update error: ' + error.message);
+            }
+        }
+
+        async function testBowlFollow() {
+            log('=== Testing Bowl Follow ===');
+            
+            const token = await getToken();
+            if (!token) {
+                log('No token available');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/bowls/119/follow', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                
+                log('Bowl follow status: ' + response.status);
+                const data = await response.text();
+                log('Bowl follow response: ' + data);
+            } catch (error) {
+                log('Bowl follow error: ' + error.message);
+            }
+        }
+
+        // Check initial status
+        window.addEventListener('load', () => {
+            if (window.__getDynamicToken) {
+                document.getElementById('status').textContent = '__getDynamicToken is available';
+            } else {
+                document.getElementById('status').textContent = '__getDynamicToken is NOT available - main app needs to load first';
+            }
+        });
+    </script>
+</body>
+</html>

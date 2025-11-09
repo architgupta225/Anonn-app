@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Authentication</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #ff4500;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #ff5722;
+        }
+        .success {
+            color: green;
+            margin-top: 20px;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔐 Clear Anonn Authentication</h1>
+
+        <div class="info">
+            <strong>Current Session:</strong>
+            <p id="status">Checking...</p>
+        </div>
+
+        <button onclick="clearAuth()">Clear Authentication</button>
+        <button onclick="checkStatus()">Check Status</button>
+        <button onclick="goToApp()">Go to App</button>
+
+        <div id="message"></div>
+    </div>
+
+    <script>
+        function checkStatus() {
+            const token = localStorage.getItem('phantom_auth_token');
+            const status = document.getElementById('status');
+
+            if (token) {
+                status.innerHTML = `
+                    <span style="color: green;">✅ Authenticated</span><br>
+                    <small>Token: ${token.substring(0, 20)}...</small>
+                `;
+            } else {
+                status.innerHTML = '<span style="color: red;">❌ Not authenticated</span>';
+            }
+        }
+
+        function clearAuth() {
+            // Clear all authentication data
+            localStorage.removeItem('phantom_auth_token');
+            localStorage.clear();
+
+            const message = document.getElementById('message');
+            message.innerHTML = '<p class="success">✅ Authentication cleared! Refresh the app to see the login page.</p>';
+
+            checkStatus();
+        }
+
+        function goToApp() {
+            window.location.href = 'http://localhost:3000';
+        }
+
+        // Check status on load
+        checkStatus();
+    </script>
+</body>
+</html>
