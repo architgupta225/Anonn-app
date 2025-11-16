@@ -1,37 +1,90 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect, useRef } from "react"; // Added useRef
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
-import {
-  Plus, Users, TrendingUp, Star, Home,
-  BarChart3, Sparkles, Hash, MessageCircle, Twitter, Building, User, Bell, Flame, ChevronDown, ChevronUp,
-  HelpCircle,
-  Briefcase,
-  Settings,
-  Bookmark,
-  LogOut,
-  Edit2,
-  Edit3,
-  Menu,
-  X,
-  Triangle,
-  Circle,
-  BarChart
-} from "lucide-react";
-import { Link, useLocation } from "wouter";
-import { motion, LayoutGroup } from "framer-motion";
-import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/queryClient";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { LayoutGroup, motion } from "framer-motion";
+import {
+  BarChart,
+  Bell,
+  Bookmark,
+  ChevronDown,
+  Circle,
+  Edit3,
+  Home,
+  LogOut,
+  MessageCircle,
+  Settings,
+  TrendingUp,
+  Triangle,
+  Twitter,
+  User,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react"; // Added useRef
+import { Link, useLocation } from "wouter";
+
+// Component to load and render SVG icons with color control
+const SvgIcon = ({
+  src,
+  isActive,
+  alt,
+  noFill,
+  color,
+}: {
+  src: string;
+  isActive?: boolean;
+  alt?: string;
+  noFill?: boolean;
+  color?: string;
+}) => {
+  const [svgContent, setSvgContent] = useState<string>("");
+
+  useEffect(() => {
+    fetch(src)
+      .then((res) => res.text())
+      .then((svg) => {
+        let coloredSvg = svg;
+
+        if (noFill) {
+          // For icons that should not be filled, set fill to none and keep stroke
+          coloredSvg = svg
+            .replace(/fill="(?!none)[^"]*"/g, 'fill="none"')
+            .replace(/fill='(?!none)[^']*'/g, "fill='none'")
+            .replace(/stroke="[^"]*"/g, 'stroke="currentColor"')
+            .replace(/stroke='[^']*'/g, "stroke='currentColor'");
+        } else {
+          // Replace fill and stroke attributes with currentColor for color control
+          coloredSvg = svg
+            .replace(/fill="[^"]*"/g, 'fill="currentColor"')
+            .replace(/stroke="[^"]*"/g, 'stroke="currentColor"')
+            .replace(/fill='[^']*'/g, "fill='currentColor'")
+            .replace(/stroke='[^']*'/g, "stroke='currentColor'");
+        }
+        setSvgContent(coloredSvg);
+      })
+      .catch((err) => console.error(`Failed to load SVG: ${src}`, err));
+  }, [src, noFill]);
+
+  if (!svgContent) return null;
+
+  const colorClass = color || (isActive ? "text-white" : "text-[#525252]");
+
+  return (
+    <div
+      className={`flex-shrink-0 transition-all duration-200 ${colorClass}`}
+      dangerouslySetInnerHTML={{ __html: svgContent }}
+    />
+  );
+};
 
 interface SidebarProps {
   onCreatePost: () => void;
   onCreateReview: () => void;
 }
 
-export default function LeftSidebar({ onCreatePost, onCreateReview }: SidebarProps) {
-   const { isAuthenticated, user} = useAuth();
+export default function LeftSidebar({
+  onCreatePost,
+  onCreateReview,
+}: SidebarProps) {
+  const { isAuthenticated, user } = useAuth();
   const [location, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
@@ -41,33 +94,33 @@ export default function LeftSidebar({ onCreatePost, onCreateReview }: SidebarPro
   const profileRef = useRef<HTMLDivElement>(null); // Added ref for profile dropdown
 
   // Check screen size and set initial state
- // Check screen size and set initial state - FIXED VERSION
-useEffect(() => {
-  const checkScreenSize = () => {
-    const mobile = window.innerWidth < 1024; // lg breakpoint is 1024px
-    setIsMobile(mobile);
+  // Check screen size and set initial state - FIXED VERSION
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const mobile = window.innerWidth < 1024; // lg breakpoint is 1024px
+      setIsMobile(mobile);
 
-    // Use a functional update to get the *current* state
-    // This avoids stale state and dependency loops
-    setIsOpen((currentIsOpen) => {
-      if (mobile && currentIsOpen) {
-        return false; // Collapse if mobile and currently open
-      } else if (!mobile && !currentIsOpen) {
-        return true; // Expand if desktop and currently closed
-      }
-      return currentIsOpen; // Otherwise, no change
-    });
-  };
+      // Use a functional update to get the *current* state
+      // This avoids stale state and dependency loops
+      setIsOpen((currentIsOpen) => {
+        if (mobile && currentIsOpen) {
+          return false; // Collapse if mobile and currently open
+        } else if (!mobile && !currentIsOpen) {
+          return true; // Expand if desktop and currently closed
+        }
+        return currentIsOpen; // Otherwise, no change
+      });
+    };
 
-  // Initial check
-  checkScreenSize();
+    // Initial check
+    checkScreenSize();
 
-  // Add event listener
-  window.addEventListener('resize', checkScreenSize);
+    // Add event listener
+    window.addEventListener("resize", checkScreenSize);
 
-  // Cleanup
-  return () => window.removeEventListener('resize', checkScreenSize);
-}, []); // Empty dependency array is now correct
+    // Cleanup
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []); // Empty dependency array is now correct
 
   // Load favorites from server on component mount
   const { data: serverFavorites } = useQuery<{ bowlId: number }[]>({
@@ -76,16 +129,15 @@ useEffect(() => {
     enabled: true,
   });
 
-
   // Load favorites from localStorage on component mount
   useEffect(() => {
-    const savedFavorites = localStorage.getItem('bowl-favorites');
+    const savedFavorites = localStorage.getItem("bowl-favorites");
     if (savedFavorites) {
       try {
         const favoritesArray = JSON.parse(savedFavorites);
         setFavorites(new Set(favoritesArray));
       } catch (error) {
-        console.error('Error loading favorites from localStorage:', error);
+        console.error("Error loading favorites from localStorage:", error);
       }
     }
   }, []);
@@ -93,51 +145,67 @@ useEffect(() => {
   // Sync with server favorites when available
   useEffect(() => {
     if (serverFavorites) {
-      const serverFavoritesSet = new Set(serverFavorites.map(f => f.bowlId));
+      const serverFavoritesSet = new Set(serverFavorites.map((f) => f.bowlId));
       setFavorites(serverFavoritesSet);
-      localStorage.setItem('bowl-favorites', JSON.stringify(Array.from(serverFavoritesSet)));
+      localStorage.setItem(
+        "bowl-favorites",
+        JSON.stringify(Array.from(serverFavoritesSet))
+      );
     }
   }, [serverFavorites]);
 
-
-
- 
   // Get notifications for unseen count
-  const { data: notifications } = useQuery<Array<{ id: number; read: boolean }>>({
+  const { data: notifications } = useQuery<
+    Array<{ id: number; read: boolean }>
+  >({
     queryKey: ["/api/notifications"],
     retry: false,
   });
 
   // Calculate unseen notification count
-  const unseenNotificationCount = notifications?.filter(n => !n.read).length || 0;
-
-  // Close profile dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
-        setIsProfileOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+  const unseenNotificationCount =
+    notifications?.filter((n) => !n.read).length || 0;
 
   // Main navigation items
   const sidebarItems: Array<{
     href: string;
     label: string;
-    icon: any;
+    iconPath?: string; // SVG path from public folder
+    icon?: any; // Lucide icon component (fallback)
     isActive: boolean;
     badge?: number;
   }> = [
-    { href: "/", label: "HOME", icon: Home, isActive: location === "/" },
-    { href: "/polls", label: "POLLS", icon: BarChart, isActive: location === "/polls" },
-    { href: "/notifications", label: "NOTIFICATIONS", icon: Bell, isActive: location === "/notifications", badge: unseenNotificationCount > 0 ? unseenNotificationCount : 0 },
-    { href: "/organizations", label: "COMPANIES", icon: Triangle, isActive: location.startsWith("/organizations") },
-    { href: "/bowls", label: "BOWLS", icon: Circle, isActive: location.startsWith("/bowls") && !isProfileOpen },
+    {
+      href: "/",
+      label: "HOME",
+      iconPath: "/icons/Home icon.svg",
+      isActive: location === "/",
+    },
+    {
+      href: "/polls",
+      label: "POLLS",
+      iconPath: "/icons/Polls icon.svg",
+      isActive: location === "/polls",
+    },
+    {
+      href: "/notifications",
+      label: "NOTIFICATIONS",
+      iconPath: "/icons/Notifications icon.svg",
+      isActive: location === "/notifications",
+      badge: unseenNotificationCount > 0 ? unseenNotificationCount : 0,
+    },
+    {
+      href: "/organizations",
+      label: "COMPANIES",
+      iconPath: "/icons/Companies icon.svg",
+      isActive: location.startsWith("/organizations"),
+    },
+    {
+      href: "/bowls",
+      label: "BOWLS",
+      iconPath: "/icons/Bowls icon.svg",
+      isActive: location.startsWith("/bowls") && !isProfileOpen,
+    },
   ];
 
   const [showHot, setShowHot] = useState(!isMobile); // Auto-collapse hot section on mobile
@@ -147,7 +215,7 @@ useEffect(() => {
     "MegaETH public sale total commitments?",
     "Will Sam Altman get OpenAI equity in 2025?",
     "Active Web3 Contributor",
-    "Consistently Supportive and Dedicated"
+    "Consistently Supportive and Dedicated",
   ];
 
   const handleProfileClick = (e: React.MouseEvent) => {
@@ -165,39 +233,39 @@ useEffect(() => {
     // Don't close the dropdown - keep it open
   };
 
-const handleLogout = async (e: React.MouseEvent) => {
-  e.stopPropagation(); // Prevent event from bubbling to parent
-  try {
-    // Call server logout endpoint
-    await apiRequest('POST', '/api/auth/logout', {});
-    
-    // Clear localStorage items
-    localStorage.removeItem('phantom_auth_token');
-    localStorage.removeItem('bowl-favorites');
-    localStorage.removeItem('dynamic_store');
-    localStorage.removeItem('dynamic_device_fingerprint');
-    localStorage.removeItem('walletName');
-    localStorage.removeItem('wallet-uicluster');
-    // Clear any other auth-related items
-    
-    // Clear sessionStorage
-    sessionStorage.clear();
-    
-    // Redirect to auth page
-    window.location.href = '/';
-  } catch (error) {
-    console.error('Logout error:', error);
-    // Even if server logout fails, still clear local data and redirect
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = '/';
-  }
-};
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event from bubbling to parent
+    try {
+      // Call server logout endpoint
+      await apiRequest("POST", "/api/auth/logout", {});
+
+      // Clear localStorage items
+      localStorage.removeItem("phantom_auth_token");
+      localStorage.removeItem("bowl-favorites");
+      localStorage.removeItem("dynamic_store");
+      localStorage.removeItem("dynamic_device_fingerprint");
+      localStorage.removeItem("walletName");
+      localStorage.removeItem("wallet-uicluster");
+      // Clear any other auth-related items
+
+      // Clear sessionStorage
+      sessionStorage.clear();
+
+      // Redirect to auth page
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Even if server logout fails, still clear local data and redirect
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = "/";
+    }
+  };
 
   // Toggle sidebar function
   const handleToggleSidebar = () => {
     setIsOpen(!isOpen);
-    
+
     // When expanding sidebar on mobile, also expand the hot section
     if (!isOpen && isMobile) {
       setShowHot(true);
@@ -205,7 +273,11 @@ const handleLogout = async (e: React.MouseEvent) => {
   };
 
   useEffect(() => {
-    if(location === "/profile" || location === "/settings") {
+    if (
+      location === "/profile" ||
+      location === "/settings" ||
+      location === "/bookmarks"
+    ) {
       setIsProfileOpen(true);
     } else {
       setIsProfileOpen(false);
@@ -219,13 +291,14 @@ const handleLogout = async (e: React.MouseEvent) => {
   }, [isOpen, isMobile]);
 
   return (
-    <div className={` bg-black border-r border-gray-800 pt-4 flex flex-col h-full transition-all duration-300 ${
-      isOpen ? 'w-64' : 'w-20'
-    } relative z-10` }>
-      
+    <div
+      className={`pt-4 flex flex-col h-full transition-all duration-300 ${
+        isMobile ? (isOpen ? "w-64" : "w-20") : ""
+      } relative z-10`}
+    >
       {/* Mobile Overlay */}
       {isMobile && isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-5"
           onClick={() => setIsOpen(false)}
         />
@@ -242,7 +315,7 @@ const handleLogout = async (e: React.MouseEvent) => {
           <button
             onClick={handleToggleSidebar}
             className={`p-2 rounded-md hover:bg-[#252525] transition-colors duration-200 ${
-              !isOpen ? 'mx-auto' : ''
+              !isOpen ? "mx-auto" : ""
             }`}
             title={isOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
@@ -256,7 +329,7 @@ const handleLogout = async (e: React.MouseEvent) => {
       )}
 
       {/* Content Container */}
-      <div className="flex-1 flex flex-col scrollbar-hide  overflow-y-auto relative z-10">
+      <div className="flex-1 flex flex-col scrollbar-hide overflow-y-auto relative z-10 ">
         {/* Main Navigation */}
         <LayoutGroup id="side-nav">
           <nav className="space-y-1 px-3">
@@ -266,39 +339,62 @@ const handleLogout = async (e: React.MouseEvent) => {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`relative flex items-center px-3 py-3 text-sm font-normal rounded-lg transition-all duration-200 group ${
+                  className={`relative flex gap-[10px] items-center py-[10px] px-4 text-sm font-normal rounded-lg transition-all duration-200 group ${
                     item.isActive
                       ? "text-white bg-[#2a2a2a]"
                       : "text-gray-200 hover:text-gray-300 hover:bg-[#252525]"
-                  } ${!isOpen ? 'justify-center' : ''}`}
+                  } ${!isOpen ? "justify-center" : ""}`}
                   title={!isOpen ? item.label : undefined}
                 >
                   <motion.div
-                    className={`relative z-10 ${isOpen ? 'mr-3' : ''}`}
+                    className={`relative z-10`}
                     animate={{ scale: 1, y: 0 }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 25 }}
                   >
-                    <Icon fill={item.isActive ? "currentColor" : "none"} className={`h-5 w-5 flex-shrink-0 transition-all duration-200 ${
-                      item.isActive ? 'text-white' : 'text-gray-400'
-                    }`} />
+                    {item.iconPath ? (
+                      <SvgIcon
+                        src={item.iconPath}
+                        isActive={item.isActive}
+                        alt={item.label}
+                      />
+                    ) : (
+                      <Icon
+                        fill={item.isActive ? "currentColor" : "none"}
+                        className={`flex-shrink-0 transition-all duration-200 ${
+                          item.isActive ? "text-white" : "text-[#525252]"
+                        }`}
+                      />
+                    )}
                   </motion.div>
 
                   {isOpen && (
                     <div className="flex justify-between flex-1 items-center">
-
-                      <span className="relative z-10 truncate font-normal text-sm uppercase">
+                      <div
+                        className={`relative z-10 truncate font-medium text-xs uppercase
+                      ${item.isActive ? "text-white" : "text-[#525252]"}`}
+                      >
                         {item.label}
-                      </span>
-                       {/* This badge only appears when sidebar is OPEN */}
-                      {isOpen && item.badge && (
-                        <span className=" text-xs text-center font-bold p-1 bg-gray-700 text-white rounded-full">
-                          {item.badge > 99 ? '99+' : item.badge}
-                        </span>
-                        )}
+                      </div>
+                      {/* This badge only appears when sidebar is OPEN */}
+                      {item.badge && (
+                        <div
+                          className={`
+                          flex items-center justify-center
+                          h-5 min-w-5 px-1
+                          rounded-full 
+                          text-[10px] font-semibold
+                          ${
+                            item.isActive
+                              ? "bg-white text-black"
+                              : "bg-[#525252] text-white"
+                          }
+                        `}
+                        >
+                          {item.badge > 99 ? "99+" : item.badge}
+                        </div>
+                      )}
                     </div>
                   )}
-
-                 
                 </Link>
               );
             })}
@@ -308,36 +404,53 @@ const handleLogout = async (e: React.MouseEvent) => {
               <div className="relative" ref={profileRef}>
                 <button
                   onClick={handleProfileClick}
-                  className={`relative flex items-center w-full px-3 py-3 text-sm font-normal rounded-lg transition-all duration-200 group ${
-                    (location === "/profile" || location === "/settings" || isProfileOpen)
+                  className={`relative flex items-center w-full px-4 py-[10px] text-sm font-normal rounded-lg transition-all duration-200 group ${
+                    location === "/profile" ||
+                    location === "/settings" ||
+                    location === "/bookmarks" ||
+                    isProfileOpen
                       ? "text-white bg-[#2a2a2a]"
-                      : "text-gray-400 hover:text-gray-300 hover:bg-[#252525]"
-                  } ${!isOpen ? 'justify-center' : ''}`}
+                      : "text-[#525252] hover:bg-[#252525]"
+                  } ${!isOpen ? "justify-center" : ""}`}
                 >
                   <motion.div
-                    className={`relative z-10 ${isOpen ? 'mr-3' : ''}`}
-                    animate={(location === "/profile" || location === "/settings") ? { scale: 1, y: 0 } : { scale: 1, y: 0 }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                    className={`relative z-10 ${isOpen ? "mr-3" : ""}`}
+                    animate={
+                      location === "/profile" || location === "/settings"
+                        ? { scale: 1, y: 0 }
+                        : { scale: 1, y: 0 }
+                    }
+                    transition={{ type: "spring", stiffness: 500, damping: 25 }}
                   >
-                    <User className={`h-5 w-5 flex-shrink-0 transition-all duration-200 ${
-                      (location === "/profile" || location === "/settings" || isProfileOpen) ? 'text-white' : 'text-gray-400'
-                    }`} />
+                    <SvgIcon
+                      src="/icons/Profile-sidebar icon.svg"
+                      isActive={
+                        location === "/profile" ||
+                        location === "/settings" ||
+                        location === "/bookmarks"
+                      }
+                      alt={"profile"}
+                    />
                   </motion.div>
 
                   {isOpen && (
                     <>
-                      <span className="relative z-10 truncate font-normal text-sm uppercase flex-1 text-left">
+                      <span className="relative z-10 truncate font-semibold text-xs uppercase flex-1 text-left">
                         PROFILE
                       </span>
-                      <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform duration-200 ${
+                          isProfileOpen ? "rotate-180" : ""
+                        }`}
+                      />
                     </>
                   )}
                 </button>
 
                 {/* Profile Submenu - Only show when sidebar is open */}
                 {isAuthenticated && isProfileOpen && isOpen && (
-                  <div className="mt-1 ml-3 space-y-1 border-l border-gray-700 pl-3">
-                    {(isMobile) && (
+                  <div className="mt-1 ml-3 space-y-1  pl-3">
+                    {isMobile && (
                       <button
                         onClick={(e) => handleSubmenuClick(e, "/create-post")}
                         className="flex items-center w-full px-3 py-2 text-sm text-gray-400 hover:text-gray-300 hover:bg-[#252525] rounded-lg transition-all duration-200"
@@ -348,24 +461,62 @@ const handleLogout = async (e: React.MouseEvent) => {
                     )}
                     <button
                       onClick={(e) => handleSubmenuClick(e, "/bookmarks")}
-                      className="flex items-center w-full px-3 py-2 text-sm text-gray-400 hover:text-gray-300 hover:bg-[#252525] rounded-lg transition-all duration-200"
+                      className={`flex gap-[10px] items-center w-full px-4 py-[10px] text-xs rounded-lg transition-all duration-200 ${
+                        location === "/bookmarks"
+                          ? "text-white bg-[#2a2a2a]"
+                          : "text-[#525252] hover:text-gray-300 hover:bg-[#252525]"
+                      }`}
                     >
-                      <Bookmark className="h-4 w-4 mr-3" />
-                      <span className="text-sm">BOOKMARKS</span>
+                      <SvgIcon
+                        src="/icons/Bookmark-sidebar.svg"
+                        isActive={location === "/bookmarks"}
+                        noFill={location === "/bookmarks" ? false : true}
+                      />
+                      <span
+                        className={`text-xs font-medium ${
+                          location === "/bookmarks"
+                            ? "text-white"
+                            : "text-[#525252]"
+                        }`}
+                      >
+                        BOOKMARKS
+                      </span>
                     </button>
                     <button
                       onClick={(e) => handleSubmenuClick(e, "/settings")}
-                      className="flex items-center w-full px-3 py-2 text-sm text-gray-400 hover:text-gray-300 hover:bg-[#252525] rounded-lg transition-all duration-200"
+                      className={`flex gap-[10px] items-center w-full px-4 py-[10px] text-xs rounded-lg transition-all duration-200 ${
+                        location === "/settings"
+                          ? "text-white bg-[#2a2a2a]"
+                          : "text-gray-400 hover:text-gray-300 hover:bg-[#252525]"
+                      }`}
                     >
-                      <Settings className="h-4 w-4 mr-3" />
-                      <span className="text-sm">SETTINGS</span>
+                      <SvgIcon
+                        src="/icons/Settings-sidebar.svg"
+                        isActive={location === "/settings"}
+                        noFill={location === "/settings" ? false : true}
+                      />
+                      <span
+                        className={`text-xs font-medium ${
+                          location === "/settings"
+                            ? "text-white"
+                            : "text-gray-400"
+                        }`}
+                      >
+                        SETTINGS
+                      </span>
                     </button>
                     <button
                       onClick={handleLogout}
-                      className="flex items-center w-full px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-[#252525] rounded-lg transition-all duration-200"
+                      className="flex gap-[10px] items-center w-full px-4 py-[10px] text-xs rounded-lg  hover:bg-[#252525] transition-all duration-200 text-red-400 hover:text-red-300"
                     >
-                      <LogOut className="h-4 w-4 mr-3" />
-                      <span className="text-sm">LOGOUT</span>
+                      <SvgIcon
+                        src="/icons/Logout.svg"
+                        noFill={true}
+                        color="text-[#7A271A]"
+                      />
+                      <span className="text-xs font-medium text-[#7A271A]">
+                        LOGOUT
+                      </span>
                     </button>
                   </div>
                 )}
@@ -375,42 +526,48 @@ const handleLogout = async (e: React.MouseEvent) => {
         </LayoutGroup>
 
         {/* Divider - Only show when sidebar is open */}
-        {isOpen && <div className="my-6 mx-4 h-px bg-gray-700"></div>}
+        {isOpen && <div className="my-2 mx-4 h-px bg-gray-700"></div>}
 
         {/* HOT Section */}
         <div className="px-3 mb-6">
           {isOpen && (
-            <button 
-              onClick={() => setShowHot((s) => !s)} 
-              className="group w-full px-3 py-2 text-xs font-semibold text-white uppercase tracking-wider mb-2 flex items-center justify-between hover:text-gray-300 transition-all duration-200 hover:bg-[#252525] rounded-md"
+            <button
+              onClick={() => setShowHot((s) => !s)}
+              className="group w-full px-4 py-[10px] text-xs font-medium text-white uppercase tracking-wider mb-2 flex items-center justify-between  rounded-md"
             >
               <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
+                <SvgIcon src="/icons/Hot icon.svg" isActive={true} />
+                {/* <TrendingUp className="w-4 h-4" /> */}
                 <span>HOT</span>
               </div>
-              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showHot ? '' : 'rotate-180'}`} />
             </button>
           )}
-          <div className={`space-y-1 overflow-hidden transition-[max-height,opacity] duration-300 ${
-            showHot && isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-          }`}>
+          <div
+            className={`space-y-1 overflow-hidden transition-[max-height,opacity] duration-300 ${
+              showHot && isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+            }`}
+          >
             {hotTopics.map((topic, index) => (
-              <div 
-                key={index} 
-                className="px-3 py-2 text-xs underline text-gray-400 hover:text-gray-300 hover:bg-[#252525] rounded transition-all duration-200 cursor-pointer"
+              <div
+                key={index}
+                className="font-spacemono px-4 py-3 text-[10px] underline text-[#8E8E93] hover:text-gray-300 hover:bg-[#252525] rounded transition-all duration-200 cursor-pointer"
               >
                 {topic}
               </div>
             ))}
           </div>
         </div>
-
-       
       </div>
 
       {/* Social Media Links - Bottom */}
       <div className="mt-auto px-3 pb-4">
-        <div className={`flex ${isOpen ? 'justify-center space-x-3' : 'flex-col justify-center space-y-3'}`}>
+        <div
+          className={`flex ${
+            isOpen
+              ? "justify-center space-x-3"
+              : "flex-col justify-center space-y-3"
+          }`}
+        >
           <a
             href="https://discord.gg/2M4DxRUkXR"
             target="_blank"

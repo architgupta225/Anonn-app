@@ -12,7 +12,12 @@ interface MainLayoutProps {
   children: React.ReactNode;
 }
 
-export default function MainLayout({ onCreatePost, bowls, organizations, children }: MainLayoutProps) {
+export default function MainLayout({
+  onCreatePost,
+  bowls,
+  organizations,
+  children,
+}: MainLayoutProps) {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   // Loading state
@@ -33,32 +38,36 @@ export default function MainLayout({ onCreatePost, bowls, organizations, childre
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a]">
-  <Navigation />
+    <div className="min-h-screen bg-[#0a0a0a] p-4">
+      <div className="fixed top-0 left-0 right-0 z-50 -mx-4">
+        <Navigation />
+      </div>
 
-  <div className="flex w-full pt-14">
-    {/* LEFT SIDEBAR */}
-    <aside
-      className="fixed top-14 left-0 h-[calc(100vh-3.5rem)] bg-[#0a0a0a] border-r border-gray-800 overflow-y-auto z-10"
-    >
-      <LeftSidebar onCreatePost={onCreatePost} onCreateReview={onCreatePost} />
-    </aside>
+      <div className="h-14" />
 
-    {/* MAIN CONTENT */}
-    <main className="flex-1 min-w-0 bg-[#0a0a0a] overflow-y-auto transition-all duration-300 ml-20 lg:ml-64 lg:mr-80">
-      {children}
-    </main>
+      <div className="flex w-full">
+        {/* LEFT SIDEBAR */}
+        <aside className="fixed left-0 top-14  h-[calc(100vh-3.5rem)] bg-[#0a0a0a] overflow-y-auto z-10 lg:w-[20%] lg:left-16">
+          <LeftSidebar
+            onCreatePost={onCreatePost}
+            onCreateReview={onCreatePost}
+          />
+        </aside>
 
-    {/* RIGHT SIDEBAR */}
-    <aside className="hidden lg:block fixed top-14 right-0 w-80 h-[calc(100vh-3.5rem)] overflow-y-auto">
-      <RightSidebar
-        bowls={bowls}
-        organizations={organizations}
-        onCreatePost={onCreatePost}
-      />
-    </aside>
-  </div>
-</div>
+        {/* MAIN CONTENT */}
+        <main className="w-full lg:w-[55%] lg:ml-auto ml-10 mr-0 lg:mx-auto px-[4%] bg-[#0a0a0a] overflow-y-auto transition-all duration-300 lg:px-16">
+          {children}
+        </main>
 
+        {/* RIGHT SIDEBAR */}
+        <aside className="fixed hidden lg:block top-14 right-0 lg:right-16 h-[calc(100vh-3.5rem)] overflow-y-auto z-10 lg:w-[20%]">
+          <RightSidebar
+            bowls={bowls}
+            organizations={organizations}
+            onCreatePost={onCreatePost}
+          />
+        </aside>
+      </div>
+    </div>
   );
 }

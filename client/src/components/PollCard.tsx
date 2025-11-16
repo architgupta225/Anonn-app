@@ -6,18 +6,24 @@ import { formatTimeAgo } from "@/lib/utils";
 import { PollWithDetails } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { SvgIcon } from "./SvgIcon";
 
 interface PollCardProps {
   poll: PollWithDetails;
   onUpdate?: () => void; // Optional callback to refresh data after voting
 }
 
-export default function PollCard({ poll: initialPoll, onUpdate }: PollCardProps) {
+export default function PollCard({
+  poll: initialPoll,
+  onUpdate,
+}: PollCardProps) {
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
   const [poll, setPoll] = useState(initialPoll);
   const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
-  const [animatingVote, setAnimatingVote] = useState<"up" | "down" | null>(null);
+  const [animatingVote, setAnimatingVote] = useState<"up" | "down" | null>(
+    null
+  );
 
   // Vote mutation for upvote/downvote
   const voteMutation = useMutation({
@@ -44,7 +50,10 @@ export default function PollCard({ poll: initialPoll, onUpdate }: PollCardProps)
     onError: (err: any) => {
       setAnimatingVote(null);
 
-      if (err.message?.includes("401") || err.message?.includes("Unauthorized")) {
+      if (
+        err.message?.includes("401") ||
+        err.message?.includes("Unauthorized")
+      ) {
         toast({
           title: "Unauthorized",
           description: "You are logged out.",
@@ -72,7 +81,7 @@ export default function PollCard({ poll: initialPoll, onUpdate }: PollCardProps)
         downvotes: data.downvotes,
         userVote: data.userVote,
       }));
-      
+
       // Call parent refresh if provided
       if (onUpdate) {
         onUpdate();
@@ -123,15 +132,15 @@ export default function PollCard({ poll: initialPoll, onUpdate }: PollCardProps)
         options: data.options || prev.options,
         totalVotes: data.totalVotes || prev.totalVotes,
       }));
-      
+
       // Clear selected options
       setSelectedOptions([]);
-      
+
       toast({
         title: "Vote submitted!",
         description: "Your vote has been recorded.",
       });
-      
+
       // Call parent refresh if provided
       if (onUpdate) {
         onUpdate();
@@ -150,7 +159,7 @@ export default function PollCard({ poll: initialPoll, onUpdate }: PollCardProps)
           variant="outline"
           size="sm"
           onClick={() => {
-            const event = new CustomEvent('triggerWalletConnect');
+            const event = new CustomEvent("triggerWalletConnect");
             window.dispatchEvent(event);
           }}
         >
@@ -222,12 +231,12 @@ export default function PollCard({ poll: initialPoll, onUpdate }: PollCardProps)
   };
 
   return (
-    <article className="bg-[#EAEAEA05] border border-[#525252] overflow-hidden">
+    <article className=" border-[0.5px] border-[#525252]/30 bg-[rgba(234,234,234,0.02)] max-w-full overflow-hidden">
       {/* Header Section */}
-      <div className="px-4 py-3 text-[#8E8E93] bg-[#525252] flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="px-3 md:px-4 text-[#8E8E93] bg-[#525252] flex items-center justify-between">
+        <div className="flex items-center gap-4 min-w-0 flex-1">
           <span
-            className=" text-base font-normal underline cursor-pointer hover:text-gray-200 transition-colors"
+            className="text-xs py-3 md:py-3 md:text-base font-medium underline hover:text-gray-300 cursor-pointer transition-colors truncate"
             onClick={handleAuthorClick}
           >
             {poll.author.username || "user1234"}
@@ -235,37 +244,38 @@ export default function PollCard({ poll: initialPoll, onUpdate }: PollCardProps)
         </div>
 
         <div className="flex items-center gap-2">
-          <span className=" text-sm">
-            {formatTimeAgo(poll.createdAt)}
-          </span>
+          <span className=" text-sm">{formatTimeAgo(poll.createdAt)}</span>
         </div>
       </div>
 
       {/* Content Section */}
       <div
-        className="px-6 py-6 cursor-pointer"
+        className="px-4 md:px-9 py-4 md:py-4 cursor-pointer flex flex-col gap-4"
         onClick={handlePollClick}
       >
         {/* Poll Title */}
-        <h3 className="text-xl font-normal text-[#E8EAE9] mb-4 leading-normal">
+        <h3 className="font-spacemono text-sm font-normal text-[#E8EAE9] leading-normal">
           {poll.title}
         </h3>
-
         {/* Poll Description */}
         {poll.description && (
-          <div className="text-gray-400 mb-4 text-sm">
+          <div className="text-[#8E8E93] text-xs leading-relaxed flex flex-col gap-4">
             {truncateContent(poll.description, 100)}
           </div>
         )}
-
         {/* Poll Options - Bar Style */}
-        <div className="space-y-3 mb-4">
-          {poll.options && poll.options.map((option) => {
+        <div
+          className={`grid gap-3 ${
+            poll.options.length <= 2 ? "grid-cols-1" : "grid-cols-2"
+          } w-full`}
+        >
+          {poll.options.map((option) => {
             const showResults = poll.hasVoted || poll.totalVotes > 0;
             const percentage =
               poll.totalVotes > 0
                 ? Math.round((option.voteCount / poll.totalVotes) * 100)
                 : 0;
+
             const isSelected = selectedOptions.includes(option.id);
 
             return (
@@ -279,8 +289,8 @@ export default function PollCard({ poll: initialPoll, onUpdate }: PollCardProps)
               >
                 {/* Background bar */}
                 <div
-                  className={`relative rounded h-12 flex items-center px-4 overflow-hidden border ${
-                    isSelected ? "border-blue-500" : "border-gray-600"
+                  className={`relative h-10 md:h-12 flex items-center px-4 overflow-hidden border ${
+                    isSelected ? "border-blue-500" : "border-[#525252]/30"
                   }`}
                 >
                   {/* Progress fill */}
@@ -293,7 +303,7 @@ export default function PollCard({ poll: initialPoll, onUpdate }: PollCardProps)
 
                   {/* Option text */}
                   <div className="relative z-10 flex items-center justify-center w-full">
-                    <span className="text-white text-base">
+                    <span className="text-[#E8EAE9] text-xs font-normal">
                       {option.text}{" "}
                       {showResults && (
                         <span className="text-gray-400">[{percentage}%]</span>
@@ -329,10 +339,10 @@ export default function PollCard({ poll: initialPoll, onUpdate }: PollCardProps)
       </div>
 
       {/* Footer Actions */}
-      <div className="flex items-stretch border-t border-gray-600">
+      <div className="flex flex-col md:flex-row items-stretch border-t border-[#525252]/30">
         {/* Left Side - Upvote/Downvote */}
         <div
-          className="flex items-stretch"
+          className="flex items-center justify-between px-4 md:px-0 md:items-stretch border-b border-[#525252]/30 md:border-b-none"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Upvote Button */}
@@ -343,7 +353,7 @@ export default function PollCard({ poll: initialPoll, onUpdate }: PollCardProps)
               handlePollVote("up");
             }}
             disabled={voteMutation.isPending}
-            className={`flex items-center gap-2 md:gap-3 px-4 md:px-8 py-3 md:py-4 border-r border-gray-600 transition-colors ${
+            className={`flex flex-1 justify-center md:justify-start text-center md:text-left md:flex-none items-center gap-2 md:px-6 py-3 border-r-[0.5px] border-[#525252]/30 transition-colors ${
               poll.userVote?.voteType === "up"
                 ? "text-blue-500 bg-blue-500/5"
                 : "text-white hover:bg-gray-800/50"
@@ -352,15 +362,17 @@ export default function PollCard({ poll: initialPoll, onUpdate }: PollCardProps)
             {voteMutation.isPending && animatingVote === "up" ? (
               <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
             ) : (
-              <Triangle
-                fill="white"
-                className="w-4 h-4 md:w-5 md:h-5"
-                strokeWidth={2.5}
+              <SvgIcon
+                src="/icons/up-vote.svg"
+                color={
+                  poll.userVote?.voteType === "up"
+                    ? "text-blue-500"
+                    : "text-white"
+                }
+                alt="upvote"
               />
             )}
-            <span className="text-base md:text-lg font-normal">
-              {poll.upvotes}
-            </span>
+            <span className="text-xs font-normal">{poll.upvotes}</span>
           </button>
 
           {/* Downvote Button */}
@@ -371,7 +383,7 @@ export default function PollCard({ poll: initialPoll, onUpdate }: PollCardProps)
               handlePollVote("down");
             }}
             disabled={voteMutation.isPending}
-            className={`flex items-center gap-2 md:gap-3 px-4 md:px-8 py-3 md:py-4 border-r border-gray-600 transition-colors ${
+            className={`flex flex-1 justify-center md:justify-start md:flex-none items-center gap-2 md:px-6 py-3 border-r-none md:border-r-[0.5px] border-[#525252]/30 transition-colors  ${
               poll.userVote?.voteType === "down"
                 ? "text-orange-500 bg-orange-500/5"
                 : "text-white hover:bg-gray-800/50"
@@ -380,23 +392,28 @@ export default function PollCard({ poll: initialPoll, onUpdate }: PollCardProps)
             {voteMutation.isPending && animatingVote === "down" ? (
               <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
             ) : (
-              <Triangle
-                fill="white"
-                className="rotate-180 h-4 w-4 md:h-5 md:w-5"
+              <SvgIcon
+                src="/icons/down-vote.svg"
+                color={
+                  poll.userVote?.voteType === "down"
+                    ? "text-orange-500"
+                    : "text-white"
+                }
+                alt="downvote"
               />
             )}
-            <span className="text-base md:text-lg font-normal hidden sm:inline">
+            <span className="text-xs font-normal sm:inline">
               {poll.downvotes}
             </span>
           </button>
         </div>
 
         {/* Spacer */}
-        <div className="flex-1"></div>
+        <div className="flex-1 hidden md:block"></div>
 
         {/* Right Side - Comments & Bookmark */}
         <div
-          className="flex items-stretch"
+          className="flex justify-end md:justify-normal items-stretch"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Comments Button */}
@@ -406,9 +423,13 @@ export default function PollCard({ poll: initialPoll, onUpdate }: PollCardProps)
               if (!handleAuthRequired("view comments")) return;
               window.location.href = `/poll?id=${poll.id}`;
             }}
-            className="flex items-center gap-3 px-8 py-4 text-white hover:bg-gray-800/50 transition-colors"
+            className="flex items-center gap-2 px-4 py-3 text-white hover:bg-gray-800/50 transition-colors"
           >
-            <MessageSquare className="w-5 h-5" strokeWidth={2} />
+            <SvgIcon
+              src="/icons/Post comment icon.svg"
+              color="text-white"
+              alt="comment"
+            />
           </button>
 
           {/* Bookmark Button */}
@@ -418,9 +439,13 @@ export default function PollCard({ poll: initialPoll, onUpdate }: PollCardProps)
               e.stopPropagation();
               handleBookmark();
             }}
-            className="flex items-center justify-center px-8 py-4 text-white hover:bg-gray-800/50 transition-colors"
+            className="flex items-center justify-center px-4 py-3 transition-colors text-white hover:bg-gray-800/50"
           >
-            <Bookmark className="w-5 h-5" strokeWidth={2} />
+            <SvgIcon
+              src="/icons/Post bookmark icon.svg"
+              color={"text-white"}
+              alt="bookmark"
+            />
           </button>
         </div>
       </div>

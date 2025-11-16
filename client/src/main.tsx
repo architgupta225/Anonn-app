@@ -4,6 +4,8 @@ import "./index.css";
 import { initializeAntiDebug } from "./lib/anti-debug";
 import { initializeApiEncryption } from "./lib/api-encryption";
 import { Buffer } from 'buffer';
+import "./fonts/fonts.css";
+
 
 // Polyfill Buffer for browser compatibility
 if (typeof window !== 'undefined') {

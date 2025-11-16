@@ -82,7 +82,7 @@
     color: hsl(var(--foreground));
     margin: 0;
     padding: 0;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: "Overused Grotesk" , 'Space Mono', system-ui, -apple-system, sans-serif;
   }
   * {
     @apply border-border;

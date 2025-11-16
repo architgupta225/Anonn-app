@@ -1,58 +1,56 @@
-import { Switch, Route, useLocation } from "wouter";
-import { useMemo } from "react";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import OfflineIndicator from "@/components/OfflineIndicator";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
-import OfflineIndicator from "@/components/OfflineIndicator";
-import NotFound from "@/pages/not-found";
-import Landing from "@/pages/landing";
-import Organization from "@/pages/organization";
-import Bowls from "@/pages/bowls";
-import Bowl from "@/pages/bowl";
-import Settings from "@/pages/settings";
-import AuthPage from "@/pages/auth";
-import RedirectHome from "@/pages/redirect-home";
-import CreatePost from "@/pages/create-post";
-import Search from "@/pages/search";
-import InviteRequired from "@/pages/invite-required";
 import { useWebSocket } from "@/hooks/useWebSocket";
-import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
-import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
+import CreatePost from "@/pages/create-post";
+import NotFound from "@/pages/not-found";
+import RedirectHome from "@/pages/redirect-home";
+import Search from "@/pages/search";
+import type {
+  Bowl as BowlType,
+  Organization as OrganizationType,
+} from "@shared/schema";
 import { PhantomWalletAdapter } from "@solana/wallet-adapter-phantom";
+import {
+  ConnectionProvider,
+  WalletProvider,
+} from "@solana/wallet-adapter-react";
+import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { clusterApiUrl } from "@solana/web3.js";
-import { useQuery } from "@tanstack/react-query";
-import type { Bowl as BowlType, Organization as OrganizationType } from "@shared/schema";
+import { QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
+import { Route, Switch, useLocation } from "wouter";
+import { queryClient } from "./lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 
 // Import Solana wallet adapter styles
 import "@solana/wallet-adapter-react-ui/styles.css";
-import {HomePage, 
-  NotificationsPage, 
-  OrganizationContent, 
-  OrganizationsPage, BowlsPage, 
-  PollPage, 
-  ProfilePage, 
+import {
+  BookmarksPage,
+  BowlContent,
+  BowlsPage,
+  HomePage,
+  NotificationsPage,
+  OrganizationContent,
+  OrganizationsPage,
+  PollPage,
   PollsPage,
   PostContent,
-  BowlContent,
-  BookmarksPage,
-  SettingsPage
+  ProfilePage,
+  SettingsPage,
 } from "./pages/index";
 
-import { ContentLayout, MainLayout } from "./Layout";
-import { Content } from "vaul";
 import ScrollToTop from "@/components/ScrollToTop";
+import { MainLayout } from "./Layout";
 
 function App() {
   // Use Solana devnet - change to 'mainnet-beta' for production
-  const endpoint = useMemo(() => clusterApiUrl('devnet'), []);
+  const endpoint = useMemo(() => clusterApiUrl("devnet"), []);
 
   // Only include Phantom wallet
-  const wallets = useMemo(
-    () => [new PhantomWalletAdapter()],
-    []
-  );
+  const wallets = useMemo(() => [new PhantomWalletAdapter()], []);
 
   return (
     <ConnectionProvider endpoint={endpoint}>
@@ -75,6 +73,8 @@ function App() {
 
 function RouterWithLayout() {
   const { isAuthenticated, isLoading } = useAuth();
+  const { toast } = useToast();
+
 
   // Initialize WebSocket connection for real-time updates
   useWebSocket();
@@ -100,10 +100,31 @@ function RouterWithLayout() {
     refetchIntervalInBackground: true,
   });
 
+  const showAuthToast = (action: string) => {
+    toast({
+      title: "Authentication Required",
+      description: `Please connect your wallet to ${action}.`,
+      variant: "default",
+      action: (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            const event = new CustomEvent("triggerWalletConnect");
+            window.dispatchEvent(event);
+          }}
+        >
+          Connect Wallet
+        </Button>
+      ),
+    });
+  };
+
+
   const handleCreatePost = () => {
     // If not authenticated, redirect to auth page
     if (!isAuthenticated) {
-      setLocation("/auth");
+      showAuthToast("create post")
       return;
     }
     setLocation("/create-post");
@@ -152,9 +173,9 @@ function RouterWithLayout() {
   //       <Route path="/invite-required">
   //         <InviteRequired />
   //       </Route>
-       
+
   //       <Route path="/">
-  //       <MainLayout 
+  //       <MainLayout
   //         onCreatePost={handleCreatePost}
   //         bowls={bowls}
   //         organizations={organizations}
@@ -167,7 +188,7 @@ function RouterWithLayout() {
   //     </Route>
 
   //     <Route path="/polls">
-  //       <MainLayout 
+  //       <MainLayout
   //         onCreatePost={handleCreatePost}
   //         bowls={bowls}
   //         organizations={organizations}
@@ -177,7 +198,7 @@ function RouterWithLayout() {
   //     </Route>
 
   //       <Route path="/bowls">
-  //         <MainLayout 
+  //         <MainLayout
   //           onCreatePost={handleCreatePost}
   //           bowls={bowls}
   //           organizations={organizations}
@@ -187,7 +208,7 @@ function RouterWithLayout() {
   //       </Route>
 
   //       <Route path="/organizations">
-  //       <MainLayout 
+  //       <MainLayout
   //         onCreatePost={handleCreatePost}
   //         bowls={bowls}
   //         organizations={organizations}
@@ -196,7 +217,7 @@ function RouterWithLayout() {
   //       </MainLayout>
   //     </Route>
   //       <Route path="/*">
-  //         <MainLayout 
+  //         <MainLayout
   //           onCreatePost={handleCreatePost}
   //           bowls={bowls}
   //           organizations={organizations}
@@ -215,7 +236,7 @@ function RouterWithLayout() {
     <Switch>
       {/* Routes with Layout */}
       <Route path="/">
-        <MainLayout 
+        <MainLayout
           onCreatePost={handleCreatePost}
           bowls={bowls}
           organizations={organizations}
@@ -223,13 +244,13 @@ function RouterWithLayout() {
           <HomePage
             onCreatePost={handleCreatePost}
             onExploreCommunities={() => setLocation("/bowls")}
-            isAuthenticated={isAuthenticated}/>
+            isAuthenticated={isAuthenticated}
+          />
         </MainLayout>
       </Route>
 
-      
       <Route path="/polls">
-        <MainLayout 
+        <MainLayout
           onCreatePost={handleCreatePost}
           bowls={bowls}
           organizations={organizations}
@@ -237,8 +258,9 @@ function RouterWithLayout() {
           <PollsPage />
         </MainLayout>
       </Route>
-  <Route path="/organizations">
-        <MainLayout 
+
+      <Route path="/organizations">
+        <MainLayout
           onCreatePost={handleCreatePost}
           bowls={bowls}
           organizations={organizations}
@@ -248,7 +270,7 @@ function RouterWithLayout() {
       </Route>
 
       <Route path="/notifications">
-        <MainLayout 
+        <MainLayout
           onCreatePost={handleCreatePost}
           bowls={bowls}
           organizations={organizations}
@@ -257,10 +279,8 @@ function RouterWithLayout() {
         </MainLayout>
       </Route>
 
-      
-
       <Route path="/bowls">
-        <MainLayout 
+        <MainLayout
           onCreatePost={handleCreatePost}
           bowls={bowls}
           organizations={organizations}
@@ -269,7 +289,7 @@ function RouterWithLayout() {
         </MainLayout>
       </Route>
       <Route path="/bookmarks">
-        <MainLayout 
+        <MainLayout
           onCreatePost={handleCreatePost}
           bowls={bowls}
           organizations={organizations}
@@ -279,21 +299,25 @@ function RouterWithLayout() {
       </Route>
 
       <Route path="/profile">
-        <MainLayout 
+        <MainLayout
           onCreatePost={handleCreatePost}
           bowls={bowls}
           organizations={organizations}
         >
-          <ProfilePage onCreatePost={function (): void {
-            throw new Error("Function not implemented.");
-          } } onExploreCommunities={function (): void {
-            throw new Error("Function not implemented.");
-          } } isAuthenticated={false} />
+          <ProfilePage
+            onCreatePost={function (): void {
+              throw new Error("Function not implemented.");
+            }}
+            onExploreCommunities={function (): void {
+              throw new Error("Function not implemented.");
+            }}
+            isAuthenticated={false}
+          />
         </MainLayout>
       </Route>
 
       <Route path="/organizations/:id">
-        <MainLayout 
+        <MainLayout
           onCreatePost={handleCreatePost}
           bowls={bowls}
           organizations={organizations}
@@ -303,7 +327,7 @@ function RouterWithLayout() {
       </Route>
 
       <Route path="/poll">
-        <MainLayout 
+        <MainLayout
           onCreatePost={handleCreatePost}
           bowls={bowls}
           organizations={organizations}
@@ -312,7 +336,7 @@ function RouterWithLayout() {
         </MainLayout>
       </Route>
       <Route path="/post">
-        <MainLayout 
+        <MainLayout
           onCreatePost={handleCreatePost}
           bowls={bowls}
           organizations={organizations}
@@ -321,7 +345,7 @@ function RouterWithLayout() {
         </MainLayout>
       </Route>
       <Route path="/bowls/:id">
-        <MainLayout 
+        <MainLayout
           onCreatePost={handleCreatePost}
           bowls={bowls}
           organizations={organizations}
@@ -330,7 +354,7 @@ function RouterWithLayout() {
         </MainLayout>
       </Route>
       <Route path="/settings">
-        <MainLayout 
+        <MainLayout
           onCreatePost={handleCreatePost}
           bowls={bowls}
           organizations={organizations}
@@ -338,7 +362,7 @@ function RouterWithLayout() {
           <SettingsPage />
         </MainLayout>
       </Route>
-      
+
       {/* Routes without Layout */}
       <Route path="/auth" component={RedirectHome} />
       <Route path="/create-post" component={CreatePost} />

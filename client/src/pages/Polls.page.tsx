@@ -172,7 +172,7 @@ export default function PollsPage({
           variant="outline"
           size="sm"
           onClick={() => {
-            const event = new CustomEvent('triggerWalletConnect');
+            const event = new CustomEvent("triggerWalletConnect");
             window.dispatchEvent(event);
           }}
         >
@@ -273,89 +273,91 @@ export default function PollsPage({
       return titleMatch || descMatch || authorMatch;
     });
   }, [polls, searchQuery]); // Re-filters when API data or search query changes
-  console.log("filter", filteredPolls);
+
   return (
-    <div className="flex gap-6 max-w-[1600px] mx-auto px-4 py-6">
+    <div className="flex max-w-[1400px] mx-auto px-[4%]">
       {/* Center Feed */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 flex flex-col gap-4 min-w-[200px] mx-auto lg:mx-0">
         <SearchBar
           placeholder="Blow the whistle ....."
           onSearch={(query) => setSearchQuery(query)}
         />
 
         {/* Feed Controls */}
-        <FeedControls
-          sortBy={sortBy}
-          timeFilter={timeFilter}
-          onSortChange={setSortBy}
-          onTimeFilterChange={setTimeFilter}
-        />
+        <div className="flex flex-col gap-6 mt-9">
+          <FeedControls
+            sortBy={sortBy}
+            timeFilter={timeFilter}
+            onSortChange={setSortBy}
+            onTimeFilterChange={setTimeFilter}
+          />
 
-        {/* Polls List */}
-        <div className="space-y-4">
-          {pollsLoading ? (
-            <>
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="bg-black border border-gray-800 rounded-lg overflow-hidden"
-                >
-                  <div className="bg-[#3a3a3a] p-4">
-                    <Skeleton className="h-6 w-1/4 bg-gray-700" />
+          {/* Polls List */}
+          <div className="space-y-6">
+            {pollsLoading ? (
+              <>
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="bg-black border border-gray-800 rounded-lg overflow-hidden"
+                  >
+                    <div className="bg-[#3a3a3a] p-4">
+                      <Skeleton className="h-6 w-1/4 bg-gray-700" />
+                    </div>
+                    <div className="p-4">
+                      <Skeleton className="h-6 w-3/4 mb-4 bg-gray-700" />
+                      <Skeleton className="h-4 w-full mb-2 bg-gray-700" />
+                      <Skeleton className="h-4 w-full mb-2 bg-gray-700" />
+                      <Skeleton className="h-4 w-2/3 bg-gray-700" />
+                    </div>
+                    <div className="border-t border-gray-700 p-4">
+                      <Skeleton className="h-8 w-32 bg-gray-700" />
+                    </div>
                   </div>
-                  <div className="p-4">
-                    <Skeleton className="h-6 w-3/4 mb-4 bg-gray-700" />
-                    <Skeleton className="h-4 w-full mb-2 bg-gray-700" />
-                    <Skeleton className="h-4 w-full mb-2 bg-gray-700" />
-                    <Skeleton className="h-4 w-2/3 bg-gray-700" />
-                  </div>
-                  <div className="border-t border-gray-700 p-4">
-                    <Skeleton className="h-8 w-32 bg-gray-700" />
-                  </div>
+                ))}
+              </>
+            ) : filteredPolls.length === 0 ? (
+              <div className="bg-black border border-gray-800 rounded-lg overflow-hidden">
+                <div className="text-center py-16 px-4">
+                  <BarChart3 className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                  {searchQuery ? (
+                    <>
+                      <h3 className="text-2xl font-bold text-gray-300 mb-3">
+                        No results found
+                      </h3>
+                      <p className="text-gray-500 text-lg mb-6 max-w-md mx-auto">
+                        Try adjusting your search terms.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="text-2xl font-bold text-gray-300 mb-3">
+                        No polls yet
+                      </h3>
+
+                      <p className="text-gray-500 text-lg mb-6 max-w-md mx-auto">
+                        Be the first to create a poll and see what the community
+                        thinks!
+                      </p>
+                      <Button
+                        onClick={handleCreatePoll}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg"
+                      >
+                        <Plus className="h-5 w-5 mr-2" />
+                        Create Poll
+                      </Button>
+                    </>
+                  )}
                 </div>
-              ))}
-            </>
-          ) : filteredPolls.length === 0 ? (
-            <div className="bg-black border border-gray-800 rounded-lg overflow-hidden">
-              <div className="text-center py-16 px-4">
-                <BarChart3 className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                {searchQuery ? (
-                  <>
-                    <h3 className="text-2xl font-bold text-gray-300 mb-3">
-                      No results found
-                    </h3>
-                    <p className="text-gray-500 text-lg mb-6 max-w-md mx-auto">
-                      Try adjusting your search terms.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <h3 className="text-2xl font-bold text-gray-300 mb-3">
-                      No polls yet
-                    </h3>
-
-                    <p className="text-gray-500 text-lg mb-6 max-w-md mx-auto">
-                      Be the first to create a poll and see what the community
-                      thinks!
-                    </p>
-                    <Button
-                      onClick={handleCreatePoll}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg"
-                    >
-                      <Plus className="h-5 w-5 mr-2" />
-                      Create Poll
-                    </Button>
-                  </>
-                )}
               </div>
-            </div>
-          ) : (
-            filteredPolls.map((poll: PollWithDetails) => {
-              const userSelection = selectedOptions[poll.id] || [];
+            ) : (
+              filteredPolls.map((poll: PollWithDetails) => {
+                const userSelection = selectedOptions[poll.id] || [];
 
-              return <PollCard key={poll.id} poll={poll} />;
-            })
-          )}
+                return <PollCard key={poll.id} poll={poll} />;
+              })
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -160,99 +160,100 @@ export default function HomePage({
   }, [error, toast]);
 
   return (
-    <div className="flex gap-6 max-w-[1400px] mx-auto px-4  py-6">
+    <div className="flex max-w-[1400px] mx-auto px-[4%]">
       {/* Center Feed */}
-      <div className="flex-1 min-w-[200px] mx-auto lg:mx-0">
+      <div className="flex-1 flex flex-col gap-4 min-w-[200px] mx-auto lg:mx-0">
         {/* Search Bar */}
         <SearchBar
-          placeholder="Blow the whistle ..."
+          placeholder="Blow the whistle ....."
           onSearch={(query) => setSearchQuery(query)}
         />
 
         {/* Feed Controls */}
-        <FeedControls
-          sortBy={sortBy}
-          timeFilter={timeFilter}
-          onSortChange={setSortBy}
-          onTimeFilterChange={setTimeFilter}
-        />
+        <div className="flex flex-col gap-4 md:gap-6 mt-7 md:mt-9">
+          <FeedControls
+            sortBy={sortBy}
+            timeFilter={timeFilter}
+            onSortChange={setSortBy}
+            onTimeFilterChange={setTimeFilter}
+          />
 
-        <div className="space-y-4">
-          {isLoading ? (
-            <>
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="bg-black border border-gray-800 rounded-lg overflow-hidden"
-                >
-                  <div className="bg-[#3a3a3a] p-4">
-                    <Skeleton className="h-6 w-1/4 bg-gray-700" />
-                  </div>
-                  <div className="p-4">
-                    <Skeleton className="h-6 w-3/4 mb-4 bg-gray-700" />
-                    <Skeleton className="h-4 w-full mb-2 bg-gray-700" />
-                    <Skeleton className="h-4 w-full mb-2 bg-gray-700" />
-                    <Skeleton className="h-4 w-2/3 bg-gray-700" />
-                  </div>
-                  <div className="border-t border-gray-700 p-4">
-                    <Skeleton className="h-8 w-32 bg-gray-700" />
-                  </div>
-                </div>
-              ))}
-            </>
-          ) : filteredPosts.length === 0 ? (
-            <div className="bg-[#1a1a1a] border border-gray-800 rounded-lg p-12">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MessageSquare className="h-8 w-8 text-gray-600" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-3">
-                  No posts yet
-                </h3>
-                <p className="text-gray-400 mb-6 max-w-md mx-auto text-sm">
-                  Be the first to start a discussion! Create a post to get the
-                  conversation going.
-                </p>
-                <div className="flex justify-center gap-3">
-                  <Button
-                    onClick={onCreatePost}
-                    className="bg-white hover:bg-gray-200 text-black px-5 py-2 rounded-full font-medium text-sm"
+          <div className="space-y-6">
+            {isLoading ? (
+              <>
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="bg-black border border-gray-800 rounded-lg overflow-hidden"
                   >
-                    <Edit3 className="h-4 w-4 mr-2" />
-                    Create Post
-                  </Button>
-                  <Button
-                    onClick={onExploreCommunities}
-                    variant="outline"
-                    className="border-gray-700 text-gray-300 hover:bg-gray-800 px-5 py-2 rounded-full font-medium text-sm"
-                  >
-                    <Users className="h-4 w-4 mr-2" />
-                    Explore Communities
-                  </Button>
+                    <div className="bg-[#3a3a3a] p-4">
+                      <Skeleton className="h-6 w-1/4 bg-gray-700" />
+                    </div>
+                    <div className="p-4">
+                      <Skeleton className="h-6 w-3/4 mb-4 bg-gray-700" />
+                      <Skeleton className="h-4 w-full mb-2 bg-gray-700" />
+                      <Skeleton className="h-4 w-full mb-2 bg-gray-700" />
+                      <Skeleton className="h-4 w-2/3 bg-gray-700" />
+                    </div>
+                    <div className="border-t border-gray-700 p-4">
+                      <Skeleton className="h-8 w-32 bg-gray-700" />
+                    </div>
+                  </div>
+                ))}
+              </>
+            ) : filteredPosts.length === 0 ? (
+              <div className="bg-[#1a1a1a] border border-gray-800 rounded-lg p-12">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <MessageSquare className="h-8 w-8 text-gray-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-3">
+                    No posts yet
+                  </h3>
+                  <p className="text-gray-400 mb-6 max-w-md mx-auto text-sm">
+                    Be the first to start a discussion! Create a post to get the
+                    conversation going.
+                  </p>
+                  <div className="flex justify-center gap-3">
+                    <Button
+                      onClick={onCreatePost}
+                      className="bg-white hover:bg-gray-200 text-black px-5 py-2 rounded-full font-medium text-sm"
+                    >
+                      <Edit3 className="h-4 w-4 mr-2" />
+                      Create Post
+                    </Button>
+                    <Button
+                      onClick={onExploreCommunities}
+                      variant="outline"
+                      className="border-gray-700 text-gray-300 hover:bg-gray-800 px-5 py-2 rounded-full font-medium text-sm"
+                    >
+                      <Users className="h-4 w-4 mr-2" />
+                      Explore Communities
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            filteredPosts
-              .filter((post) => post.type !== "review")
-              .map((post, index) => (
-                <div
-                  key={post.id}
-                  className="animate-post-reveal"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <PostCard
-                    post={post}
-                    onUpdate={refetch}
-                    compact={false}
-                    showCommunity={true}
-                    index={index}
-                  />
-                </div>
-              ))
-          )}
+            ) : (
+              filteredPosts
+                .filter((post) => post.type !== "review")
+                .map((post, index) => (
+                  <div
+                    key={post.id}
+                    className="animate-post-reveal"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <PostCard
+                      post={post}
+                      onUpdate={refetch}
+                      compact={false}
+                      showCommunity={true}
+                      index={index}
+                    />
+                  </div>
+                ))
+            )}
+          </div>
         </div>
-
       </div>
     </div>
   );

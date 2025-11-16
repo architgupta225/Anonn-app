@@ -2,6 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { useState } from "react"; // 1. Import useState
+import { SvgIcon } from "./SvgIcon";
 
 interface SearchBarProps {
   onSearch?: (query: string) => void;
@@ -32,11 +33,11 @@ export default function SearchBar({
   };
 
   return (
-    <div className="mb-4">
-      {/* 5. Use the new handleSubmit */}     {" "}
+    <div>
+      {/* 5. Use the new handleSubmit */}
       <form
         onSubmit={handleSubmit}
-        className="flex border border-gray-700 overflow-hidden"
+        className="flex flex-col md:flex-row border border-[#525252]/30 overflow-hidden"
       >
         {" "}
         <Input
@@ -47,18 +48,16 @@ export default function SearchBar({
           value={query}
           // 7. Call handleChange on every keystroke
           onChange={handleChange}
-          className="flex-1 h-10 md:h-16 bg-[#1a1a1a] border-0 text-white placeholder:text-gray-500 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base px-6"
-        />
-               {" "}
+          className="flex-1 text-xs h-10 border-0 font-medium md:h-16 placeholder:text-[#525252] focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-4 md:px-9"
+        />{" "}
         <Button
           type="submit"
-          className="h-10 md:h-16 bg-[#505050] hover:bg-[#606060] text-white font-medium px-4 md:px-8 flex items-center gap-2 text-sm uppercase tracking-wider rounded-none border-0"
+          className="h-10 md:h-16 bg-[#373737] hover:bg-[#606060] text-[#E8EAE9] text-xs font-medium px-4 md:px-8 flex items-center gap-[10px] tracking-wider rounded-none border-0"
         >
-                    <Search className="h-5 w-5" />          SEARCH    
+          <SvgIcon src="/icons/Search icon.svg" alt="Search" />
+          SEARCH
         </Button>
-         
-      </form>
-         {" "}
+      </form>{" "}
     </div>
   );
 }
