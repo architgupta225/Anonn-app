@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
+import { SvgIcon } from '@/components/SvgIcon';
 
 interface ShareButtonProps {
   url?: string;
@@ -102,14 +103,12 @@ export default function ShareButton({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant={variant} 
-          size={size}
+        <button 
           disabled={isSharing}
-          className={`flex items-center text-white space-x-2  hover:bg-gray-800/50  hover:text-gray-100 transition-all duration-300 ${className}`}
+          className={`flex items-center px-4 py-3 text-white space-x-2  hover:bg-gray-800/50  hover:text-gray-100 transition-all duration-300 ${className}`}
         >
-          <Share2 className="h-7 w-7" />
-        </Button>
+          <SvgIcon src='/icons/Post-share.svg' />
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56 bg-white border border-gray-200 shadow-lg">
         <DropdownMenuItem onClick={shareViaNative} className="flex items-center space-x-2">

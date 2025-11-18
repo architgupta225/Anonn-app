@@ -1,37 +1,9 @@
 // components/PollPageMain.tsx
-import React, { useState, useEffect } from "react";
-import { useLocation } from "wouter";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  BarChart3,
-  Clock,
-  Eye,
-  ArrowLeft,
-  MessageSquare,
-  Trash,
-  MoreHorizontal,
-  Bookmark,
-  ThumbsUp,
-  ThumbsDown,
-} from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import { formatTimeAgo } from "@/lib/utils";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import PollCommentReply from "@/components/PollCommentReply";
-import VoteButtons from "@/components/VoteButtons";
+import { InfiniteScrollSkeleton } from "@/components/InfiniteScrollLoader";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
+import PollCommentReply from "@/components/PollCommentReply";
 import ShareButton from "@/components/ShareButton";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+import { SvgIcon } from "@/components/SvgIcon";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,6 +14,36 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import VoteButtons from "@/components/VoteButtons";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/queryClient";
+import { formatTimeAgo } from "@/lib/utils";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  ArrowLeft,
+  BarChart3,
+  Bookmark,
+  Clock,
+  Eye,
+  MessageSquare,
+  MoreHorizontal,
+  ThumbsDown,
+  ThumbsUp,
+  Trash,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
 
 interface PollOption {
   id: number;
@@ -95,6 +97,8 @@ export default function PollPage({ onCreatePost }: PollPageMainProps) {
 
   // Get poll ID from URL
   const pollId = new URLSearchParams(window.location.search).get("id");
+
+  console.log("pollabc pollid", pollId);
 
   const queryClient = useQueryClient();
 
@@ -309,11 +313,18 @@ export default function PollPage({ onCreatePost }: PollPageMainProps) {
       setSelectedOptions([]);
     } catch (error: any) {
       console.error("Failed to vote:", error);
-      
+
       // Check if the error is because user already voted
-      const errorMessage = error?.response?.data?.error || error?.response?.data?.message || error?.message || "";
-      
-      if (errorMessage.includes("ALREADY_VOTED") || errorMessage.toLowerCase().includes("already voted")) {
+      const errorMessage =
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        error?.message ||
+        "";
+
+      if (
+        errorMessage.includes("ALREADY_VOTED") ||
+        errorMessage.toLowerCase().includes("already voted")
+      ) {
         toast({
           title: "Already voted",
           description: "You have already voted on this poll.",
@@ -366,12 +377,6 @@ export default function PollPage({ onCreatePost }: PollPageMainProps) {
       .replace(",", "");
   }
 
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      window.location.href = "/auth";
-    }
-  }, [isAuthenticated, authLoading]);
-
   if (authLoading) {
     return <div>Loading...</div>;
   }
@@ -380,20 +385,21 @@ export default function PollPage({ onCreatePost }: PollPageMainProps) {
     return <div>Please log in to view polls.</div>;
   }
 
-  return (
-    <div className="px-4 sm:px-6 lg:px-8 pt-4 pb-6 w-full max-w-[1200px] mx-auto">
-      {/* Back Button */}
-      <div className="mb-6">
-        <Button
-          variant="ghost"
-          onClick={() => setLocation("/polls")}
-          className="flex items-center space-x-2 text-gray-400 hover:text-gray-300 hover:bg-gray-800"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Back to Polls</span>
-        </Button>
-      </div>
+  function formatPostTime(dateValue: string | Date | null) {
+    if (!dateValue) return "";
 
+    const date =
+      typeof dateValue === "string" ? new Date(dateValue) : dateValue;
+
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  }
+
+  return (
+    <div className="max-w-[1400px] mx-auto px-[4%]">
       {pollLoading ? (
         <Card className="border border-gray-600 shadow-lg rounded-lg">
           <CardContent className="p-6">
@@ -438,219 +444,174 @@ export default function PollPage({ onCreatePost }: PollPageMainProps) {
       ) : poll ? (
         <>
           {/* Poll Card - Matching Post Content Design */}
-          <article className="bg-[#EAEAEA05] border border-[#525252] overflow-hidden">
-            {/* Header Section */}
-            <div className="px-8 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-4 min-w-0 flex-1">
-                <span
-                  className="text-white text-sm font-normal underline cursor-pointer hover:text-gray-200 transition-colors truncate"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    window.location.href = `/u/${poll.author.username}`;
-                  }}
-                >
-                  {getAuthorDisplay()}
-                </span>
-
-                <span className="text-[#525252] text-sm">
-                  {formatTimeAgo(poll.createdAt || "")}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {/* Green Thumbs Up Badge */}
-                <div className="p-1 flex items-center justify-center flex-shrink-0">
-                  <ThumbsUp className="w-7 h-7 fill-green-500 text-green-500" />
-                </div>
-
-                {/* Green Badge with custom icon */}
-                <div className="bg-green-400 p-1.5 flex items-center justify-center flex-shrink-0">
-                  <svg
-                    className="w-7 h-7 text-white"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
+          <article className=" bg-[rgba(234,234,234,0.02)] overflow-hidden">
+            <div className="border-[0.2px] border-[#525252]/30 px-9 py-6 flex flex-col gap-6">
+              {/* Header Section */}
+              <div className=" flex items-center justify-between">
+                <div className="flex items-center gap-4 min-w-0 flex-1">
+                  <img src="/icons/dummyAvatar.png" />
+                  <span
+                    className="text-[#8E8E93] text-xs tracking-[.24px] font-normal underline cursor-pointer hover:text-gray-200 transition-colors truncate"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
                   >
-                    <path d="M12 2L4 6v6c0 5.5 3.8 10.7 8 12 4.2-1.3 8-6.5 8-12V6l-8-4z" />
-                  </svg>
+                    {getAuthorDisplay()}
+                  </span>
+
+                  <span className="text-[#525252] text-[10px] tracking-[0.2px]">
+                    {formatTimeAgo(poll.createdAt || "")}
+                  </span>
                 </div>
 
-                {/* Poll Actions Menu (Delete) */}
-                {user?.id &&
-                  poll.author.id &&
-                  (user.id === poll.author.id ||
-                    user.id === poll.author.id.toString()) && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-gray-300 hover:text-white"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreHorizontal className="h-3 w-3 rotate-90" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="w-48"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <DropdownMenuItem
-                          onClick={() => setIsDeleteDialogOpen(true)}
-                          className="text-red-600"
-                        >
-                          <Trash className="h-4 w-4 mr-2" /> Delete
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-              </div>
-            </div>
-
-            {/* Main Content Area */}
-            <div className="px-6 cursor-default">
-              {/* Poll Title */}
-              <h1 className="text-2xl font-normal text-white my-6 leading-normal">
-                {poll.title}
-              </h1>
-
-              {/* Poll Description */}
-              {poll.description && (
-                <div className="text-[#8E8E93] text-base leading-relaxed mb-4">
-                  <div className="prose prose-base max-w-none">
-                    <MarkdownRenderer
-                      content={poll.description}
-                      className="text-gray-300"
-                    />
+                <div className="flex items-center gap-4 flex-shrink-0">
+                  {/* Green Thumbs Up Badge */}
+                  <div className=" p-1 flex items-center justify-center flex-shrink-0 ">
+                    <img src="/icons/Post like icon.svg" alt="like" />
+                    {/* <ThumbsUp className="w-7 h-7 fill-green-500 text-green-500" /> */}
                   </div>
-                </div>
-              )}
 
-              
+                  {/* Green Badge with custom icon */}
+                  <div className="bg-green-400 w-[30px] h-[30px] p-1.5 flex items-center justify-center flex-shrink-0">
+                    <svg
+                      className=" text-white"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                    >
+                      <path d="M12 2L4 6v6c0 5.5 3.8 10.7 8 12 4.2-1.3 8-6.5 8-12V6l-8-4z" />
+                    </svg>
+                  </div>
+                  {/* Post Actions Menu (Delete) */}
 
-              {/* Poll Options - Matching Image Design */}
-              <div className="space-y-4 mb-6">
-                {poll.options && poll.options.length > 0 ? (
-                  poll.options.map((option, index) => {
-                    const percentage = getVotePercentage(option.voteCount);
-                    const isSelected = selectedOptions.includes(option.id);
-                    const isVotedOption =
-                      poll.hasVoted &&
-                      poll.selectedOptions?.includes(option.id);
-
+                  {(() => {
                     return (
-                      <div
-                        key={option.id}
-                        className={`bg-[#1a1a1a] border border-gray-600 rounded-lg p-4 transition-all duration-200 ${
-                          poll?.hasVoted
-                            ? "cursor-default"
-                            : "cursor-pointer hover:border-gray-500"
-                        } ${
-                          isSelected
-                            ? "border-blue-500 bg-blue-500/10"
-                            : isVotedOption
-                            ? "border-green-500 bg-green-500/10"
-                            : ""
-                        }`}
-                        onClick={() => handleVote(option.id)}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-3">
-                            <div
-                              className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all duration-200 flex-shrink-0 ${
-                                poll?.hasVoted
-                                  ? isVotedOption
-                                    ? "border-green-500 bg-green-500"
-                                    : "border-gray-400"
-                                  : isSelected
-                                  ? "border-blue-500 bg-blue-500"
-                                  : isVotedOption
-                                  ? "border-green-500 bg-green-500"
-                                  : "border-gray-400"
-                              }`}
+                      user?.id &&
+                      poll.author?.id &&
+                      (user.id === poll.author.id ||
+                        user?.id === poll?.author.id.toString()) && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-gray-300 hover:text-white"
+                              onClick={(e) => e.stopPropagation()}
                             >
-                              {(isSelected || isVotedOption) && (
-                                <div className="w-2 h-2 rounded-full bg-white"></div>
-                              )}
-                            </div>
-
-                            <span className="text-base text-white">
-                              {option.text}
-                            </span>
-                          </div>
-
-                          <div className="text-sm text-gray-400 flex-shrink-0">
-                            {percentage}%
-                          </div>
-                        </div>
-
-                        {/* Progress Bar */}
-                        <div className="mt-2">
-                          <div className="w-full bg-gray-700 rounded-full h-2">
-                            <div
-                              className={`h-full rounded-full transition-all duration-500 ${
-                                isSelected
-                                  ? "bg-blue-500"
-                                  : isVotedOption
-                                  ? "bg-green-500"
-                                  : "bg-gray-500"
-                              }`}
-                              style={{ width: `${percentage}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Vote Count */}
-                        <div className="text-xs text-gray-500 mt-2">
-                          {option.voteCount} votes
-                        </div>
-                      </div>
+                              <MoreHorizontal className="h-3 w-3 rotate-90" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            align="end"
+                            className="w-48"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <DropdownMenuItem
+                              onClick={() => setIsDeleteDialogOpen(true)}
+                              className="text-red-600"
+                            >
+                              <Trash className="h-4 w-4 mr-2" /> Delete
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )
                     );
-                  })
-                ) : (
-                  <div className="text-center py-8 text-gray-400">
-                    No poll options available
+                  })()}
+                </div>
+              </div>
+
+              {/* Main Content Area */}
+              <div className="cursor-default flex flex-col gap-6">
+                {/* Poll Title */}
+                <div className="text-sm font-normal font-spacemono text-[#E8EAE9] leading-normal">
+                  {poll.title}
+                </div>
+
+                {/* Poll Description */}
+                {poll.description && (
+                  <div className="text-[#8E8E93] text-base leading-relaxed">
+                    <div className="prose prose-xs max-w-none">
+                      <MarkdownRenderer
+                        content={poll.description}
+                        className="text-[#8E8E93]"
+                      />
+                    </div>
                   </div>
                 )}
+
+                {/* Poll Options - Matching Image Design */}
+                <div
+                  className={`grid gap-3 ${
+                    poll.options.length <= 2 ? "grid-cols-1" : "grid-cols-2"
+                  } w-full`}
+                >
+                  {poll.options && poll.options.length > 0 ? (
+                    poll.options.map((option, index) => {
+                      const percentage = getVotePercentage(option.voteCount);
+                      const isSelected = selectedOptions.includes(option.id);
+                      const isVotedOption =
+                        poll.hasVoted &&
+                        poll.selectedOptions?.includes(option.id);
+
+                      return (
+                        <div
+                          key={option.id}
+                          className={`border-[0.2px] border-[#525252]/30 py-3 px-6 transition-all duration-200 ${
+                            poll?.hasVoted
+                              ? "cursor-default"
+                              : "cursor-pointer hover:border-gray-500"
+                          } ${
+                            isSelected || isVotedOption
+                              ? "bg-[#E8EAE9] text-[#525252]"
+                              : "bg-transparent text-white"
+                          }`}
+                          onClick={() => handleVote(option.id)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs ">
+                              {option.text} [ {percentage}% ]
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-8 text-gray-400">
+                      No poll options available
+                    </div>
+                  )}
+                </div>
+
+                {/* Vote Button */}
+                {!poll?.hasVoted && selectedOptions.length > 0 && (
+                  <div className="pt-6 border-t border-[#525252]/30">
+                    <Button
+                      onClick={submitVote}
+                      disabled={voteMutation.isPending}
+                      className="w-full rounded-none border border-[#525252]/30 hover:bg-[#E8EAE9] hover:text-[#525252] text-white py-2 font-normal text-xs transition-all duration-300"
+                    >
+                      {voteMutation.isPending
+                        ? "Voting..."
+                        : `Vote [ ${selectedOptions.length} selected ]`}
+                    </Button>
+                  </div>
+                )}
+
+                {/* Poll Stats */}
+                <div className="flex items-center justify-between text-[#525252] text-[10px] uppercase">
+                  <div>{formatPostTime(poll?.createdAt)}</div>
+                  <div>{poll.viewCount} Views</div>
+                  <div>{formatPostDate(poll?.createdAt)}</div>
+                </div>
               </div>
-
-              {/* Vote Button */}
-              {!poll?.hasVoted && selectedOptions.length > 0 && (
-                <div className="pt-6 border-t border-gray-600 mt-8">
-                  <Button
-                    onClick={submitVote}
-                    disabled={voteMutation.isPending}
-                    className="w-full bg-gray-700 hover:bg-gray-600 text-white py-3 font-normal text-base transition-all duration-300"
-                  >
-                    {voteMutation.isPending
-                      ? "Voting..."
-                      : `Vote (${selectedOptions.length} selected)`}
-                  </Button>
-                </div>
-              )}
-
-              {/* Poll Stats */}
-              <div className="flex items-center justify-between my-8 text-gray-400 text-sm mb-4">
-                <div className="flex items-center gap-1">
-                  <Eye className="w-4 h-4" />
-                  <span>{poll.viewCount || 0} VIEWS</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  <span>{formatPostDate(poll.createdAt)}</span>
-                </div>
-              </div>
-
-              
             </div>
 
             {/* Footer Actions */}
-            <div className="flex items-stretch bg-[#EAEAEA05]  border-t border-gray-600">
+            <div className="border-x-[0.2px] border-b flex flex-col md:flex-row items-stretch border-[#525252]/30">
               {/* Left Side - Upvote/Downvote with border */}
-              <div className="flex items-stretch">
+              <div>
                 <VoteButtons
                   targetId={poll.id}
                   targetType="poll"
@@ -664,7 +625,7 @@ export default function PollPage({ onCreatePost }: PollPageMainProps) {
               </div>
 
               {/* Spacer to push right items to the end */}
-              <div className="flex-1"></div>
+              <div className="flex-1 hidden md:block"></div>
 
               {/* Right Side - Comments & Bookmark */}
               <div
@@ -674,14 +635,18 @@ export default function PollPage({ onCreatePost }: PollPageMainProps) {
                 {/* Bookmark Button */}
                 <button
                   aria-label="Bookmark"
-                  className="flex items-center justify-center border-r border-gray-400 px-6 py-3 text-white hover:bg-gray-800/50 transition-colors"
+                  className="flex items-center justify-center px-4 py-3 transition-colors hover:bg-gray-800/50 text-white"
                 >
-                  <Bookmark className="w-4 h-4" strokeWidth={2} />
+                  <SvgIcon
+                    src="/icons/Post bookmark icon.svg"
+                    color={"text-white"}
+                    alt="bookmark"
+                  />
                 </button>
 
                 {/* Share Button */}
                 <ShareButton
-                  size="lg"
+                  size="sm"
                   url={window.location.href}
                   title={poll.title}
                   description={poll.description}
@@ -691,47 +656,33 @@ export default function PollPage({ onCreatePost }: PollPageMainProps) {
           </article>
 
           {/* Comments Section - Matching Post Content Design */}
-          <div className="border border-gray-700 overflow-hidden ">
+          <div className="overflow-hidden ">
             {/* Abstract Row */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#525252]">
-              <div className="flex items-center space-x-8">
-                <h3 className="text-gray-300 text-lg">
-                  Express your view about the poll
-                </h3>
-                <div className="flex items-center justify-center w-10 h-10 bg-green-500">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 text-black"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path d="M10 2a8 8 0 11-8 8 8 8 0 018-8m0 2a6 6 0 106 6 6 6 0 00-6-6z" />
-                  </svg>
-                </div>
-                <span className="text-gray-300 underline cursor-pointer text-lg">
-                  Abstract
-                </span>
+            <div className="border-x-[0.2px] border-[#525252]/30 flex items-center justify-between px-9 py-6 ">
+              <div className="text-[#525252] text-xs">
+                Express your view about the poll
               </div>
 
-              <div className="flex">
-                <div className="flex items-center justify-center bg-green-400 hover:bg-green-300 transition w-12 h-10">
-                  <ThumbsUp
-                    className="h-5 w-5 text-green-700"
-                    fill="currentColor"
-                  />
-                </div>
-                <div className="flex items-center justify-center bg-red-400 hover:bg-red-300 transition w-12 h-10">
-                  <ThumbsDown
-                    className="h-5 w-5 text-red-800"
-                    fill="currentColor"
-                  />
+              <div className="flex gap-4 md:gap-6 lg:gap-9 items-center">
+                <img src="/icons/Company icon.png" />
+                <span className="text-[#E8EAE9] underline cursor-pointer text-xs">
+                  Abstract
+                </span>
+                <div className="flex">
+                  <div className="flex cursor-pointer items-center justify-center bg-[#ABEFC6] hover:bg-green-300 transition w-[30px] h-[30px]">
+                    <img src="/icons/Post like icon-1.svg" alt="thumbs-up" />
+                  </div>
+
+                  <div className="flex cursor-pointer items-center justify-center bg-[#FDA29B] hover:bg-red-300 transition w-[30px] h-[30px]">
+                    <img src="/icons/thumbs-down.svg" alt="thumbs-down" />
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Comment Form */}
-            <div className="border-t border-gray-700 bg-[#0c0c0c]">
-              <div className="w-full bg-[#EAEAEA05] border-t border-gray-700">
+            <div className="border-[0.2px] border-[#525252]/30 bg-[#0c0c0c]">
+              <div className="w-full">
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
@@ -780,25 +731,25 @@ export default function PollPage({ onCreatePost }: PollPageMainProps) {
                   className="flex items-center justify-between"
                 >
                   {/* Left: Yellow box + input */}
-                  <div className="flex items-center px-6 py-6 space-x-4 flex-1">
+                  <div className="flex items-center pl-9 py-6 flex-1 pr-4 gap-4">
                     {/* Yellow square */}
-                    <div className="w-12 h-12 bg-yellow-500 flex-shrink-0"></div>
+                    <div className="w-[30px] h-[30px] bg-[#FFB82A] flex-shrink-0"></div>
 
                     {/* Text input */}
                     <input
                       type="text"
                       name="content"
                       placeholder="post your reply"
-                      className="w-full bg-transparent text-gray-300 text-xl font-mono placeholder-gray-500 focus:outline-none"
+                      className="w-full bg-transparent text-[#525252] text-sm font-spacemono focus:outline-none"
                     />
                   </div>
 
                   {/* Right: POST button */}
                   <Button
                     type="submit"
-                    className="flex items-center justify-center px-8 py-12 text-black font-semibold bg-gradient-to-r from-[#bfe2ff] to-[#e0f0ff] hover:opacity-90 transition border-l border-gray-700 rounded-none"
+                    className="py-10 px-6 flex items-center justify-center text-[#17181C] font-normal bg-gradient-to-r from-[#A0D9FF] to-[#E8EAE9] hover:opacity-90 transition rounded-none"
                   >
-                    <ArrowLeft className="h-6 w-6 mr-2 rotate-180" />
+                    <img src="/icons/post-button-icon.svg" />
                     POST
                   </Button>
                 </form>
@@ -806,24 +757,21 @@ export default function PollPage({ onCreatePost }: PollPageMainProps) {
             </div>
 
             {/* Comments Count */}
-            <div className="py-6 border-t border-gray-700 bg-[#0c0c0c] text-center">
-              <h3 className="text-gray-400 tracking-wide text-sm font-medium">
+            <div className="h-[40px] text-center flex justify-center items-center">
+              <div className="text-[#525252] text-[10px] font-medium">
                 [ {comments?.length || 0} COMMENTS ]
-              </h3>
+              </div>
             </div>
 
             {/* Comments List */}
-            <div className="divide-y divide-gray-700 bg-[#EAEAEA05]">
+            <div>
               {commentsLoading ? (
-                <div className="p-8 text-center">
-                  <MessageSquare className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-                  <p className="text-gray-400">Loading comments...</p>
-                </div>
+                <InfiniteScrollSkeleton count={3} />
               ) : comments && comments.length > 0 ? (
                 comments.map((comment: any) => (
                   <div
                     key={comment.id}
-                    className="transition-colors mb-4 border-y border-gray-700"
+                    className="transition-colors mb-4 border border-[#525252]/30"
                   >
                     <PollCommentReply
                       comment={comment}

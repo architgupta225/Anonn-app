@@ -487,7 +487,7 @@ export default function LeftSidebar({
                       className={`flex gap-[10px] items-center w-full px-4 py-[10px] text-xs rounded-lg transition-all duration-200 ${
                         location === "/settings"
                           ? "text-white bg-[#2a2a2a]"
-                          : "text-gray-400 hover:text-gray-300 hover:bg-[#252525]"
+                          : "text-[#525252] hover:text-gray-300 hover:bg-[#252525]"
                       }`}
                     >
                       <SvgIcon
@@ -499,7 +499,7 @@ export default function LeftSidebar({
                         className={`text-xs font-medium ${
                           location === "/settings"
                             ? "text-white"
-                            : "text-gray-400"
+                            : "text-[#525252]"
                         }`}
                       >
                         SETTINGS

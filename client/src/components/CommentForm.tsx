@@ -64,22 +64,22 @@ export default function CommentForm({ postId, onSuccess }: CommentFormProps) {
   };
 
   return (
-    <div className="w-full bg-[#EAEAEA05] border-t border-gray-700">
+    <div className="w-full">
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex items-center justify-between"
       >
         {/* Left: Yellow box + input */}
-        <div className="flex items-center px-6 py-6 space-x-4 flex-1">
+        <div className="flex items-center pl-9 py-6 flex-1 pr-4 gap-4">
           {/* Yellow square */}
-          <div className="w-12 h-12 bg-yellow-500 flex-shrink-0"></div>
+          <div className="w-[30px] h-[30px] bg-[#FFB82A] flex-shrink-0"></div>
 
           {/* Text input */}
           <input
             type="text"
             placeholder="post your reply"
             {...form.register("content")}
-            className="w-full bg-transparent text-gray-300 text-xl font-mono placeholder-gray-500 focus:outline-none"
+            className="w-full bg-transparent text-[#525252] text-sm font-spacemono focus:outline-none"
           />
         </div>
 
@@ -87,13 +87,13 @@ export default function CommentForm({ postId, onSuccess }: CommentFormProps) {
         <Button
           type="submit"
           disabled={createMutation.isPending || !form.watch("content").trim()}
-          className="flex items-center justify-center px-8 py-12 text-black font-semibold bg-gradient-to-r from-[#bfe2ff] to-[#e0f0ff] hover:opacity-90 transition border-l border-gray-700 rounded-none"
+          className="py-10 px-6 flex items-center justify-center text-[#17181C] font-normal bg-gradient-to-r from-[#A0D9FF] to-[#E8EAE9] hover:opacity-90 transition rounded-none"
         >
           {createMutation.isPending ? (
             "Posting..."
           ) : (
             <>
-              <ArrowLeft className="h-6 w-6 mr-2 rotate-180" />
+              <img src="/icons/post-button-icon.svg" />
               POST
             </>
           )}

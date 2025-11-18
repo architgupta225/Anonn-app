@@ -48,7 +48,7 @@ export default function SearchBar({
           value={query}
           // 7. Call handleChange on every keystroke
           onChange={handleChange}
-          className="flex-1 text-xs h-10 border-0 font-medium md:h-16 placeholder:text-[#525252] focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-4 md:px-9"
+          className="flex-1 text-xs h-10 border-0 font-medium md:h-16 text-[#E8EAE9] placeholder:text-[#525252] focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-4 md:px-9"
         />{" "}
         <Button
           type="submit"

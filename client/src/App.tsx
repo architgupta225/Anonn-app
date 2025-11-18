@@ -75,7 +75,6 @@ function RouterWithLayout() {
   const { isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
 
-
   // Initialize WebSocket connection for real-time updates
   useWebSocket();
 
@@ -120,14 +119,17 @@ function RouterWithLayout() {
     });
   };
 
-
-  const handleCreatePost = () => {
+  const handleCreatePost = (type?: string) => {
     // If not authenticated, redirect to auth page
     if (!isAuthenticated) {
-      showAuthToast("create post")
+      showAuthToast("create post");
       return;
     }
-    setLocation("/create-post");
+    if (type) {
+      setLocation(`/create-post?type=${type}`);
+    } else {
+      setLocation("/create-post");
+    }
   };
 
   if (isLoading) {

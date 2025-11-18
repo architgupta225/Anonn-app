@@ -1,48 +1,12 @@
-import React, { useState } from "react";
-import { useLocation } from "wouter";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  MessageSquare,
-  Share2,
-  Clock,
-  Building,
-  Users,
-  User,
-  ArrowLeft,
-  BarChart3,
-  ChevronRight,
-  Eye,
-  Heart,
-  Trash,
-  MoreHorizontal,
-  Bookmark,
-  ThumbsUp,
-  Triangle,
-  ChevronDown,
-  Share,
-  ThumbsDown,
-} from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import { formatTimeAgo } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
-import VoteButtons from "@/components/VoteButtons";
 import CommentForm from "@/components/CommentForm";
 import CommentReply from "@/components/CommentReply";
+import {
+  InfiniteScrollLoader,
+  InfiniteScrollSkeleton,
+} from "@/components/InfiniteScrollLoader";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import ShareButton from "@/components/ShareButton";
-import type { PostWithDetails, CommentWithDetails } from "@shared/schema";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+import { SvgIcon } from "@/components/SvgIcon";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,11 +17,31 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useInfiniteComments } from "@/hooks/useInfiniteScroll";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-  InfiniteScrollLoader,
-  InfiniteScrollSkeleton,
-} from "@/components/InfiniteScrollLoader";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import VoteButtons from "@/components/VoteButtons";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useInfiniteComments } from "@/hooks/useInfiniteScroll";
+import { formatTimeAgo } from "@/lib/utils";
+import type { PostWithDetails } from "@shared/schema";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  MessageSquare,
+  MoreHorizontal,
+  Trash
+} from "lucide-react";
+import { useState } from "react";
+import { useLocation } from "wouter";
 
 export default function PostContent() {
   const [location, setLocation] = useLocation();
@@ -93,6 +77,19 @@ export default function PostContent() {
     refetchIntervalInBackground: true,
   });
   console.log("Post", post);
+
+  function formatPostTime(dateValue: string | Date | null) {
+    if (!dateValue) return "";
+
+    const date =
+      typeof dateValue === "string" ? new Date(dateValue) : dateValue;
+
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  }
 
   function formatPostDate(dateValue: string | Date | null) {
     if (!dateValue) return "";
@@ -274,21 +271,9 @@ export default function PostContent() {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 pt-4 pb-6 w-full max-w-[1200px] mx-auto">
-      {/* Back Button */}
-      <div className="mb-6">
-        <Button
-          variant="ghost"
-          onClick={() => setLocation("/")}
-          className="flex items-center space-x-2 text-gray-400 hover:text-gray-300 hover:bg-gray-800"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Back to Feed</span>
-        </Button>
-      </div>
-
+    <div className="max-w-[1400px] mx-auto px-[4%]">
       {postLoading ? (
-        <Card className=" border border-gray-600 shadow-lg rounded-lg">
+        <Card className="border border-[#525252]/30 shadow-lg rounded-lg">
           <CardContent className="p-6">
             <div className="animate-pulse space-y-4">
               <div className="flex items-center space-x-3">
@@ -311,137 +296,136 @@ export default function PostContent() {
       ) : post ? (
         <>
           {/* Post Card */}
-          <article className="bg-[#EAEAEA05] border border-[#525252] overflow-hidden">
-            {/* Header Section */}
-            <div className=" px-8 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-4 min-w-0 flex-1">
-                <span
-                  className="text-white text-sm font-normal underline cursor-pointer hover:text-gray-200 transition-colors truncate"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!post.isAnonymous)
-                      window.location.href = `/u/${post.author.username}`;
-                  }}
-                >
-                  {getAuthorDisplay()}
-                </span>
-
-                <span className="text-[#525252] text-sm ">
-                  {formatTimeAgo(post.createdAt || "")}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2  flex-shrink-0">
-                {/* Green Thumbs Up Badge */}
-                <div className=" p-1 flex items-center justify-center flex-shrink-0 ">
-                  <ThumbsUp className="w-7 h-7 fill-green-500 text-green-500" />
-                </div>
-
-                {/* Green Badge with custom icon */}
-                <div className="bg-green-400 p-1.5 flex items-center justify-center flex-shrink-0">
-                  <svg
-                    className="w-7 h-7 text-white"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
+          <article className=" bg-[rgba(234,234,234,0.02)] overflow-hidden">
+            <div className="border-[0.2px] border-[#525252]/30 px-9 py-6 flex flex-col gap-6">
+              {/* Header Section */}
+              <div className=" flex items-center justify-between">
+                <div className="flex items-center gap-4 min-w-0 flex-1">
+                  <img src="/icons/dummyAvatar.png" />
+                  <span
+                    className="text-[#8E8E93] text-xs tracking-[.24px] font-normal underline cursor-pointer hover:text-gray-200 transition-colors truncate"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!post.isAnonymous)
+                        window.location.href = `/u/${post.author.username}`;
+                    }}
                   >
-                    <path d="M12 2L4 6v6c0 5.5 3.8 10.7 8 12 4.2-1.3 8-6.5 8-12V6l-8-4z" />
-                  </svg>
-                </div>
-                {/* Post Actions Menu (Delete) */}
+                    {getAuthorDisplay()}
+                  </span>
 
-                {(() => {
-                  return (
-                    user?.id &&
-                    post.author?.id &&
-                    (user.id === post.author.id ||
-                      user?.id === post?.author.id.toString()) && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-gray-300 hover:text-white"
+                  <span className="text-[#525252] text-[10px] tracking-[0.2px]">
+                    {formatTimeAgo(post.createdAt || "")}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-4 flex-shrink-0">
+                  {/* Green Thumbs Up Badge */}
+                  <div className=" p-1 flex items-center justify-center flex-shrink-0 ">
+                    <img src="/icons/Post like icon.svg" alt="like" />
+                    {/* <ThumbsUp className="w-7 h-7 fill-green-500 text-green-500" /> */}
+                  </div>
+
+                  {/* Green Badge with custom icon */}
+                  <div className="bg-green-400 w-[30px] h-[30px] p-1.5 flex items-center justify-center flex-shrink-0">
+                    <svg
+                      className=" text-white"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                    >
+                      <path d="M12 2L4 6v6c0 5.5 3.8 10.7 8 12 4.2-1.3 8-6.5 8-12V6l-8-4z" />
+                    </svg>
+                  </div>
+                  {/* Post Actions Menu (Delete) */}
+
+                  {(() => {
+                    return (
+                      user?.id &&
+                      post.author?.id &&
+                      (user.id === post.author.id ||
+                        user?.id === post?.author.id.toString()) && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-gray-300 hover:text-white"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreHorizontal className="h-3 w-3 rotate-90" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            align="end"
+                            className="w-48"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <MoreHorizontal className="h-3 w-3 rotate-90" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          align="end"
-                          className="w-48"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <DropdownMenuItem
-                            onClick={() => setIsDeleteDialogOpen(true)}
-                            className="text-red-600"
-                          >
-                            <Trash className="h-4 w-4 mr-2" /> Delete
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )
-                  );
-                })()}
-              </div>
-            </div>
-
-            {/* Main Content Area */}
-            <div className="px-6 cursor-default">
-              {/* Post Title */}
-              <h1 className="text-2xl font-normal text-white my-6 leading-normal">
-                {post.title}
-              </h1>
-
-              {/* Post Content */}
-              <div className="text-[#8E8E93] text-base leading-relaxed mb-4">
-                <div className="prose prose-base max-w-none">
-                  <MarkdownRenderer
-                    content={post.content}
-                    className="text-gray-300"
-                  />
+                            <DropdownMenuItem
+                              onClick={() => setIsDeleteDialogOpen(true)}
+                              className="text-red-600"
+                            >
+                              <Trash className="h-4 w-4 mr-2" /> Delete
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )
+                    );
+                  })()}
                 </div>
               </div>
 
-              {/* Post Stats */}
-              <div className="flex items-center justify-between my-8 text-gray-400 text-sm mb-4">
-                <div className="flex items-center gap-1">
-                  <Eye className="w-4 h-4" />
-                  <span>{post.viewCount} VIEWS</span>
+              {/* Main Content Area */}
+              <div className="cursor-default flex flex-col gap-6">
+                {/* Post Title */}
+                <div className="text-sm font-normal font-spacemono text-[#E8EAE9] leading-normal">
+                  {post.title}
                 </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  <span>{formatPostDate(post?.createdAt)}</span>
+
+                {/* Post Content */}
+                <div className="text-[#8E8E93] text-base leading-relaxed">
+                  <div className="prose prose-xs max-w-none">
+                    <MarkdownRenderer
+                      content={post.content}
+                      className="text-[#8E8E93]"
+                    />
+                  </div>
                 </div>
+
+                {/* Post Stats */}
+                <div className="flex items-center justify-between text-[#525252] text-[10px] uppercase">
+                  <div>{formatPostTime(post?.createdAt)}</div>
+                  <div>{post.viewCount} Views</div>
+                  <div>{formatPostDate(post?.createdAt)}</div>
+                </div>
+
+                {/* Company Badge */}
+                {post.organization && (
+                  <div className="mb-4">
+                    <Badge className="bg-gray-700 text-gray-300 border-none px-3 py-1 text-sm">
+                      {post.organization.name}
+                    </Badge>
+                  </div>
+                )}
+
+                {/* Attached Image */}
+                {post.imageUrl && (
+                  <div className="mb-4 rounded-lg overflow-hidden">
+                    <img
+                      src={post.imageUrl}
+                      alt="Post attachment"
+                      className="w-full max-h-96 object-cover"
+                    />
+                  </div>
+                )}
               </div>
-
-              {/* Company Badge */}
-              {post.organization && (
-                <div className="mb-4">
-                  <Badge className="bg-gray-700 text-gray-300 border-none px-3 py-1 text-sm">
-                    {post.organization.name}
-                  </Badge>
-                </div>
-              )}
-
-              {/* Attached Image */}
-              {post.imageUrl && (
-                <div className="mb-4 rounded-lg overflow-hidden">
-                  <img
-                    src={post.imageUrl}
-                    alt="Post attachment"
-                    className="w-full max-h-96 object-cover"
-                  />
-                </div>
-              )}
             </div>
 
             {/* Footer Actions */}
-            <div className="flex items-stretch bg-[#EAEAEA05]  border-t border-gray-600">
+            <div className="border-x-[0.2px] border-b flex flex-col md:flex-row items-stretch border-[#525252]/30">
               {/* Left Side - Upvote/Downvote with border */}
-              <div className="flex items-stretch">
+              <div>
                 <VoteButtons
                   targetId={post.id}
                   targetType="post"
@@ -455,7 +439,7 @@ export default function PostContent() {
               </div>
 
               {/* Spacer to push right items to the end */}
-              <div className="flex-1"></div>
+              <div className="flex-1 hidden md:block"></div>
 
               {/* Right Side - Comments & Bookmark */}
               <div
@@ -465,14 +449,19 @@ export default function PostContent() {
                 {/* Bookmark Button */}
                 <button
                   aria-label="Bookmark"
-                  className="flex items-center justify-center border-r border-gray-400 px-6 py-3 text-white hover:bg-gray-800/50 transition-colors"
+                  className={`flex items-center justify-center px-4 py-3 transition-colors hover:bg-gray-800/50 text-white
+                `}
                 >
-                  <Bookmark className="w-4 h-4" strokeWidth={2} />
+                  <SvgIcon
+                    src="/icons/Post bookmark icon.svg"
+                    color={"text-white"}
+                    alt="bookmark"
+                  />
                 </button>
 
                 {/* Share Button */}
                 <ShareButton
-                  size="lg"
+                  size="sm"
                   url={window.location.href}
                   title={post.title}
                   description={post.content}
@@ -483,41 +472,26 @@ export default function PostContent() {
 
           {/* Comments Section */}
           {showComments && (
-            <div className="border bg-[#EAEAEA05] border-gray-700  overflow-hidden rounded-md">
+            <div className="overflow-hidden">
               {/* Abstract Row (example of same layout as screenshot) */}
-              <div className=" bg-[#EAEAEA05] flex items-center justify-between px-6 py-4 ">
-                <div className="flex items-center space-x-8">
-                  <h3 className="text-gray-300 text-lg">
-                    Express your view about the company
-                  </h3>
-                  <div className="flex items-center justify-center w-10 h-10 bg-green-500">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-black"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path d="M10 2a8 8 0 11-8 8 8 8 0 018-8m0 2a6 6 0 106 6 6 6 0 00-6-6z" />
-                    </svg>
-                  </div>
-                  <span className="text-gray-300 underline cursor-pointer text-lg">
-                    Abstract
-                  </span>
+              <div className="border-x-[0.2px] border-[#525252]/30 flex items-center justify-between px-9 py-6 ">
+                <div className="text-[#525252] text-xs">
+                  Express your view about the company
                 </div>
 
-                <div className="flex">
-                  <div className="flex items-center justify-center bg-green-400 hover:bg-green-300 transition w-12 h-10">
-                    <ThumbsUp
-                      className="h-5 w-5 text-green-700"
-                      fill="currentColor"
-                    />
-                  </div>
+                <div className="flex gap-4 md:gap-6 lg:gap-9 items-center">
+                  <img src="/icons/Company icon.png" />
+                  <span className="text-[#E8EAE9] underline cursor-pointer text-xs">
+                    Abstract
+                  </span>
+                  <div className="flex">
+                    <div className="flex cursor-pointer items-center justify-center bg-[#ABEFC6] hover:bg-green-300 transition w-[30px] h-[30px]">
+                      <img src="/icons/Post like icon-1.svg" alt="thumbs-up" />
+                    </div>
 
-                  <div className="flex items-center justify-center bg-red-400 hover:bg-red-300 transition w-12 h-10">
-                    <ThumbsDown
-                      className="h-5 w-5 text-red-800"
-                      fill="currentColor"
-                    />
+                    <div className="flex cursor-pointer items-center justify-center bg-[#FDA29B] hover:bg-red-300 transition w-[30px] h-[30px]">
+                      <img src="/icons/thumbs-down.svg" alt="thumbs-down" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -530,47 +504,50 @@ export default function PostContent() {
               </div>
 
               {/* Comment Form */}
-              <div className=" border-t border-gray-700 bg-[#0c0c0c]">
+              <div className="border-[0.2px] border-[#525252]/30 bg-[#0c0c0c]">
                 <CommentForm postId={post.id} onSuccess={refetchComments} />
               </div>
 
               {/* Comments Count */}
-              <div className="py-6 border-t border-gray-700 bg-[#0c0c0c] text-center">
-                <h3 className="text-gray-400 tracking-wide text-sm font-medium">
+              <div className="h-[40px] text-center flex justify-center items-center">
+                <div className="text-[#525252] text-[10px] font-medium">
                   [ {comments?.length || 0} COMMENTS ]
-                </h3>
+                </div>
               </div>
 
               {/* Comments List */}
-              <div className="divide-y divide-gray-700 bg-[#EAEAEA05]">
+              <div>
                 {commentsLoading && comments.length === 0 ? (
                   <InfiniteScrollSkeleton count={3} />
                 ) : comments && comments.length > 0 ? (
                   comments.map((comment) => (
-                      <div key={comment.id} className="transition-colors mb-4 border-y border-gray-700">
-                        {user?.id &&
-                          comment.authorId &&
-                          (user.id === comment.authorId ||
-                            user.id === comment.authorId.toString()) && (
-                            <div className="flex justify-end mb-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => deleteComment(comment.id)}
-                                className="text-red-500 hover:text-red-700"
-                              >
-                                <Trash className="h-4 w-4 mr-1" /> Delete
-                              </Button>
-                            </div>
-                          )}
-                        <CommentReply
-                          key={comment.id}
-                          comment={comment}
-                          postId={post.id}
-                          onSuccess={refetchComments}
-                          depth={0}
-                        />
-                      </div>
+                    <div
+                      key={comment.id}
+                      className="transition-colors mb-4 border border-[#525252]/30"
+                    >
+                      {user?.id &&
+                        comment.authorId &&
+                        (user.id === comment.authorId ||
+                          user.id === comment.authorId.toString()) && (
+                          <div className="flex justify-end mb-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => deleteComment(comment.id)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <Trash className="h-4 w-4 mr-1" /> Delete
+                            </Button>
+                          </div>
+                        )}
+                      <CommentReply
+                        key={comment.id}
+                        comment={comment}
+                        postId={post.id}
+                        onSuccess={refetchComments}
+                        depth={0}
+                      />
+                    </div>
                   ))
                 ) : (
                   <div className="p-8 text-center">
@@ -622,7 +599,7 @@ export default function PostContent() {
           </AlertDialog>
         </>
       ) : (
-        <Card className=" border border-gray-600">
+        <Card className=" border border-[#525252]/30">
           <CardContent className="p-12 text-center">
             <div className="mb-6">
               <MessageSquare className="h-16 w-16 text-gray-400 mx-auto mb-4" />

@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface MainLayoutProps {
-  onCreatePost: () => void;
+  onCreatePost: (type?: string) => void;
   bowls?: any[];
   organizations?: any[];
   children: React.ReactNode;

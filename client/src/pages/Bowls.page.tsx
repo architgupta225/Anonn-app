@@ -1,23 +1,20 @@
 // components/BowlsMain.tsx
-import { useState, useEffect, useCallback } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import SearchBar from "@/components/SearchBar";
+import { SvgIcon } from "@/components/SvgIcon";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Users,
-  FileText,
-  BarChart3,
-  Plus,
-  Minus,
-  ChevronDown,
-} from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
-import SearchBar from "@/components/SearchBar";
-import type { BowlWithStats, Bowl, BowlFollow } from "@shared/schema";
-import { SvgIcon } from "@/components/SvgIcon";
+import type { Bowl, BowlFollow, BowlWithStats } from "@shared/schema";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  ChevronDown,
+  Minus,
+  Plus
+} from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useLocation } from "wouter";
 
 interface BowlsMainProps {
   onCreatePost?: () => void;
@@ -255,8 +252,6 @@ export default function BowlsPage({
         <div className="flex border-t border-[0.2px] border-[#525252]/30 text-[#525252] ">
           <div className="flex items-center justify-center text-[10px] w-1/3 gap-2 py-3 border-r border-[0.2px] border-[#525252]/30">
             <SvgIcon src="/icons/Comments-user icon.svg" />
-
-
             <span>{bowl.memberCount ? `${bowl.memberCount}K` : "0K"}</span>
           </div>
           <div className="flex items-center justify-center text-[10px] w-1/3 gap-2 py-3 border-r border-[0.2px] border-[#525252]/30">

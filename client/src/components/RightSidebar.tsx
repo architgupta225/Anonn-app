@@ -1,30 +1,5 @@
-import {
-  Edit3,
-  BarChart3,
-  Circle,
-  Triangle,
-  FileText,
-  LogIn,
-  Loader2,
-  ArrowRight,
-  Eye,
-  User,
-  Settings,
-  Share,
-  Share2,
-  BarChartHorizontalBig,
-  BarChartBigIcon,
-  Camera,
-  WalletCards,
-} from "lucide-react";
-import type { Bowl, Organization } from "@shared/schema";
-import { useAuth } from "@/hooks/useAuth";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
 import {
   Dialog,
   DialogContent,
@@ -33,10 +8,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { navigate } from "wouter/use-browser-location";
-import { useForm } from "react-hook-form";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { Bowl, Organization } from "@shared/schema";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import {
+  ArrowRight,
+  Camera,
+  Circle,
+  Edit3,
+  Loader2
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useLocation } from "wouter";
+import { navigate } from "wouter/use-browser-location";
 
 import { z } from "zod";
 import { SvgIcon } from "./SvgIcon";
@@ -44,7 +32,7 @@ import { SvgIcon } from "./SvgIcon";
 interface RightSidebarProps {
   bowls?: Bowl[];
   organizations?: Organization[];
-  onCreatePost: () => void;
+  onCreatePost: (type?: string) => void;
 }
 
 // Add the profile schema (same as backend)
@@ -91,7 +79,7 @@ export default function RightSidebar({
   const [showHot, setShowHot] = useState(!isMobile); // Auto-collapse hot section on mobile
 
   // Check if we're on the profile page
-  const isProfilePage = location === "/profile" || location === "/settings";
+  const isProfilePage = location === "/profile" || location === "/settings" || location === "/bookmarks";
   const isBowlsPage = location === "/bowls";
   const isOrganizationsPage = location === "/organizations";
 
@@ -119,7 +107,6 @@ export default function RightSidebar({
     // Cleanup
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
-
 
   // Update form when user data changes
   useEffect(() => {
@@ -287,7 +274,10 @@ export default function RightSidebar({
   };
 
   const handleConnectWallet = () => {
-    console.log("Opening wallet modal...");
+    if (isAuthenticated) {
+      onCreatePost();
+      return;
+    }
     setVisible(true);
   };
 
@@ -370,129 +360,125 @@ export default function RightSidebar({
   };
 
   return (
-    <div
-      className="pt-4 flex flex-col h-full transition-all duration-300 relative z-10 bg-[#0a0a0a]"
-    >
+    <div className="pt-4 overflow-auto scrollbar-hide flex flex-col h-full transition-all duration-300 relative z-10 bg-[#0a0a0a]">
       {/* Content */}
       {/* Conditional Section based on Authentication */}
-          <div>
-            <div className="relative h-[180px] w-full bg-[linear-gradient(117deg,_#A0D9FF_-0.07%,_#E8EAE9_99.93%)] overflow-hidden">
-              <div className="h-5 w-5 bg-[#0A0A0A] absolute top-0 left-0"></div>
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <Button
-                    onClick={handleConnectWallet}
-                    disabled={isConnecting}
-                    className="flex items-center gap-2 uppercase text-gray-700 text-xl hover:text-gray-900 hover:scale-105 font-normal px-4 py-2 rounded-md transition-colors disabled:opacity-50 outline-none shadow-none"
-                  >
-                    {isConnecting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Connecting...
-                      </>
-                    ) : isAuthenticated ? (
-                      <>
-                        <SvgIcon src="/icons/Create pencil.svg" />
-                        CREATE
-                      </>
-                    ) : (
-                      <>
-                        <SvgIcon src="/icons/Wallet.svg" />
-                        Connect Wallet
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
+      <div>
+        <div className="relative h-[180px] w-full bg-[linear-gradient(117deg,_#A0D9FF_-0.07%,_#E8EAE9_99.93%)] overflow-hidden">
+          <div className="h-5 w-5 bg-[#0A0A0A] absolute top-0 left-0"></div>
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <Button
+                onClick={handleConnectWallet}
+                disabled={isConnecting}
+                className="flex items-center gap-2 uppercase text-gray-700 text-xl hover:text-gray-900 hover:scale-105 font-normal px-4 py-2 rounded-md transition-colors disabled:opacity-50 outline-none shadow-none"
+              >
+                {isConnecting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Connecting...
+                  </>
+                ) : isAuthenticated ? (
+                  <>
+                    <SvgIcon src="/icons/Create pencil.svg" />
+                    CREATE
+                  </>
+                ) : (
+                  <>
+                    <SvgIcon src="/icons/Wallet.svg" />
+                    Connect Wallet
+                  </>
+                )}
+              </Button>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="flex mb-4 items-center border-l-[0.2px] border-r-[0.2px] border-b-[0.2px] border-[#525252]/30">
-            <button
-              onClick={onCreatePost}
-              className="flex flex-1 items-center text-[#E8EAE9] justify-center gap-4 py-4 hover:bg-gray-900 text-xs font-medium transition-colors border-r border-[#525252]/30"
-            >
-              {/* <BarChart3 className="w-3 h-3" /> */}
-              <SvgIcon src="/icons/Polls icon.svg" />
-              POLL
-            </button>
-            <button
-              onClick={onCreatePost}
-              className="flex flex-1 items-center text-[#E8EAE9] justify-center gap-4 py-4 hover:bg-gray-900 text-xs font-medium transition-colors"
-            >
-              {/* <FileText className="w-3 h-3" /> */}
-              <SvgIcon src="/icons/Post option icon.svg" />
-              POST
-            </button>
-          </div>
+      <div className="flex mb-4 items-center border-l-[0.2px] border-r-[0.2px] border-b-[0.2px] border-[#525252]/30">
+        <button
+          onClick={() => onCreatePost("poll")}
+          className="flex flex-1 items-center text-[#E8EAE9] justify-center gap-4 py-4 hover:bg-gray-900 text-xs font-medium transition-colors border-r border-[#525252]/30"
+        >
+          {/* <BarChart3 className="w-3 h-3" /> */}
+          <SvgIcon src="/icons/Polls icon.svg" />
+          POLL
+        </button>
+        <button
+          onClick={() => onCreatePost("text")}
+          className="flex flex-1 items-center text-[#E8EAE9] justify-center gap-4 py-4 hover:bg-gray-900 text-xs font-medium transition-colors"
+        >
+          {/* <FileText className="w-3 h-3" /> */}
+          <SvgIcon src="/icons/Post option icon.svg" />
+          POST
+        </button>
+      </div>
 
-          {/* COMMUNITIES Section */}
-          {!isProfilePage && !isBowlsPage && (
-            <>
-              <div className="mb-2 h-px bg-gray-700"></div>
-              <div className="px-4 mb-2">
-                <div className="flex items-center gap-[10px] py-[10px] mb-4">
-                  <Circle className="h-3 w-3 text-white fill-white" />
-                  <div className="font-medium text-[#E8EAE9] uppercase text-xs">
-                    COMMUNITIES
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  {bowls?.slice(0, 4).map((bowl) => (
-                    <div key={bowl.id}>
-                      <a
-                        href={`/bowls/${encodeURIComponent(bowl.name)}`}
-                        className="font-spacemono text-[#8E8E93] hover:text-white transition-colors text-[10px] underline block"
-                      >
-                        {bowl.name?.toLowerCase().replace(/\s+/g, "")}
-                      </a>
-                    </div>
-                  ))}
-                </div>
+      {/* COMMUNITIES Section */}
+      {!isProfilePage && !isBowlsPage && (
+        <>
+          <div className="mb-2 h-px bg-gray-700"></div>
+          <div className="px-4 mb-2">
+            <div className="flex items-center gap-[10px] py-[10px] mb-4">
+              <Circle className="h-3 w-3 text-white fill-white" />
+              <div className="font-medium text-[#E8EAE9] uppercase text-xs">
+                COMMUNITIES
               </div>
-            </>
-          )}
-
-          {/* COMPANIES Section */}
-          {!isProfilePage && !isOrganizationsPage && (
-            <>
-              <div className="my-2 h-px bg-gray-700 w-full"></div>
-              <div className="px-4">
-                <div className="text-xs py-[10px] text-[#E8EAE9] font-medium mb-4 flex items-center gap-2 uppercase tracking-wide">
-                  <SvgIcon src="/icons/Companies-right icon.svg" />
-                  COMPANIES
+            </div>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {bowls?.slice(0, 4).map((bowl) => (
+                <div key={bowl.id}>
+                  <a
+                    href={`/bowls/${encodeURIComponent(bowl.name)}`}
+                    className="font-spacemono text-[#8E8E93] hover:text-white transition-colors text-[10px] underline block"
+                  >
+                    {bowl.name?.toLowerCase().replace(/\s+/g, "")}
+                  </a>
                 </div>
-                <div className="space-y-4">
-                  {organizations?.slice(0, 5).map((org, index) => {
-                    const logoStyle = getCompanyLogoStyle(index);
-                    return (
-                      <div
-                        key={org.id}
-                        className="flex items-center justify-between"
-                      >
-                        <div
-                          className={`w-[30px] h-[30px] ${logoStyle.bg} flex items-center justify-center flex-shrink-0`}
-                        >
-                          <span
-                            className={`text-lg font-bold ${logoStyle.text}`}
-                          >
-                            {org.name?.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <span className="text-xs text-[#8E8E93] truncate">
-                          {org.name}
-                        </span>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
-                        <div className="flex items-center">
-                          <div className="bg-[#ABEFC6] flex justify-center py-2 w-[30px] text-[#079455] font-semibold text-xs disabled:opacity-50  text-center">
-                            {Math.floor(Math.random() * 40) + 60}
-                          </div>
-                          <div className="bg-[#FDA29B] flex justify-center py-2 w-[30px] text-[#D92D20] font-semibold text-xs disabled:opacity-50 text-center">
-                            {Math.floor(Math.random() * 40) + 30}
-                          </div>
-                        </div>
+      {/* COMPANIES Section */}
+      {!isProfilePage && !isOrganizationsPage && (
+        <>
+          <div className="my-2 h-px bg-gray-700 w-full"></div>
+          <div className="px-4">
+            <div className="text-xs py-[10px] text-[#E8EAE9] font-medium mb-4 flex items-center gap-2 uppercase tracking-wide">
+              <SvgIcon src="/icons/Companies-right icon.svg" />
+              COMPANIES
+            </div>
+            <div className="space-y-4">
+              {organizations?.slice(0, 5).map((org, index) => {
+                const logoStyle = getCompanyLogoStyle(index);
+                return (
+                  <div
+                    key={org.id}
+                    className="flex items-center justify-between"
+                  >
+                    <div
+                      className={`w-[30px] h-[30px] ${logoStyle.bg} flex items-center justify-center flex-shrink-0`}
+                    >
+                      <span className={`text-lg font-bold ${logoStyle.text}`}>
+                        {org.name?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <span className="text-xs text-[#8E8E93] truncate">
+                      {org.name}
+                    </span>
 
-                        {/* <div className="flex items-center flex-shrink-0">
+                    <div className="flex items-center">
+                      <div className="bg-[#ABEFC6] flex justify-center py-2 w-[30px] text-[#079455] font-semibold text-xs disabled:opacity-50  text-center">
+                        {Math.floor(Math.random() * 40) + 60}
+                      </div>
+                      <div className="bg-[#FDA29B] flex justify-center py-2 w-[30px] text-[#D92D20] font-semibold text-xs disabled:opacity-50 text-center">
+                        {Math.floor(Math.random() * 40) + 30}
+                      </div>
+                    </div>
+
+                    {/* <div className="flex items-center flex-shrink-0">
                     <div className="px-[7.5px] py-[11px] bg-[#ABEFC6] text-[#079455] text-xs font-bold w-[30px] text-center">
                       {Math.floor(Math.random() * 40) + 60}
                     </div>
@@ -500,78 +486,81 @@ export default function RightSidebar({
                       {Math.floor(Math.random() * 40) + 30}
                     </div>
                   </div> */}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </>
-          )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
 
-          {/* Profile Edit Section - Only show on profile page when authenticated */}
-          {isAuthenticated && isProfilePage && (
-            <div className="mt-4 bg-black border border-gray-700 overflow-hidden">
-              {/* Profile Image Section */}
-              <div className="relative p-4">
-                <div className="relative w-56 h-60 mx-auto">
-                  <Avatar className="w-full h-full rounded-none">
-                    <AvatarImage
-                      src={
-                        user?.profileImageUrl ||
-                        "https://res.cloudinary.com/backend969/image/upload/v1762989309/c3c53349d65202c7653c4f4e2bdfae8ef9a43aa0_bzwk87.png"
-                      }
-                      className="object-cover"
-                    />
-                    <AvatarFallback className="bg-gray-800 text-white font-bold text-4xl rounded-none">
-                      {user?.username?.charAt(0).toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  {/* Edit Icon on Image - Fixed to open image edit dialog */}
+      {/* Profile Edit Section - Only show on profile page when authenticated */}
+      {isAuthenticated && isProfilePage && (
+        <>
+          {/* Profile Image Section */}
+          <div className="my-2 h-px bg-[#525252]/30 w-full"></div>
+          <div className="border mt-4 border-[#525252]/30">
+            <div className="relative px-2 py-4">
+              <div className="relative h-[218px] mx-auto">
+                <Avatar className="w-full h-full rounded-none">
+                  <AvatarImage
+                    src={
+                      user?.profileImageUrl ||
+                      "https://res.cloudinary.com/backend969/image/upload/v1762989309/c3c53349d65202c7653c4f4e2bdfae8ef9a43aa0_bzwk87.png"
+                    }
+                    className="object-cover"
+                  />
+                  <AvatarFallback className="bg-gray-800 text-white font-bold text-4xl rounded-none">
+                    {user?.username?.charAt(0).toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                {/* Edit Icon on Image - Fixed to open image edit dialog */}
+                <button
+                  onClick={handleImageEdit}
+                  className="absolute bottom-4 text-[#E8EAE9] right-4 w-[30px] h-[30px] bg-[#17181C] hover:bg-black flex items-center justify-center transition-colors"
+                >
+                  <SvgIcon src="/icons/Pencil.svg" />
+                </button>
+              </div>
+            </div>
+
+            {/* Username Section */}
+            <div className="px-2 py-4">
+              <div className="relative border px-6 border-[#525252]/30 ">
+                <div className="absolute -top-3 px-2 py-1 bg-[#17181C] text-[10px] inline-block text-[#525252] border border-[#525252]/30 uppercase tracking-wider">
+                  USERNAME
+                </div>
+                <div className="flex items-center justify-between py-5">
+                  <span className="text-[#8E8E93] underline text-xs font-medium">
+                    {user?.username || "user1234"}
+                  </span>
                   <button
-                    onClick={handleImageEdit}
-                    className="absolute bottom-4 right-4 w-10 h-10 bg-black/80 hover:bg-black flex items-center justify-center transition-colors"
+                    onClick={handleUsernameEdit}
+                    className="w-3.5 h-3.5 text-[#E8EAE9] flex items-center justify-center hover:bg-gray-800 transition-colors"
                   >
-                    <Camera className="w-4 h-4 text-white" />
+                    <SvgIcon src="/icons/Pencil.svg" />
                   </button>
                 </div>
               </div>
 
-              {/* Username Section */}
-              <div className="p-4">
-                <div className="relative border px-5 border-gray-700 p">
-                  <div className="absolute -top-4 px-2 py-1 bg-black text-xs inline-block text-gray-500 border border-gray-700 uppercase tracking-wider">
-                    USERNAME
-                  </div>
-                  <div className="flex items-center justify-between pt-8 py-4">
-                    <span className="text-gray-300 underline text-lg font-medium">
-                      {user?.username || "user1234"}
-                    </span>
-                    <button
-                      onClick={handleUsernameEdit}
-                      className="w-8 h-8 flex items-center justify-center hover:bg-gray-800 transition-colors"
-                    >
-                      <Edit3 className="w-4 h-4 text-gray-400" />
-                    </button>
-                  </div>
+              {/* Stats Section */}
+              <div className="flex border w-full border-[#525252]/30 ">
+                <div className="px-6 py-3 flex items-center bg-gray-100 justify-center">
+                  <SvgIcon src="/icons/profile-share.svg" />
                 </div>
-
-                {/* Stats Section */}
-                <div className="grid grid-cols-3 border border-gray-700">
-                  <div className="flex items-center bg-gray-100 justify-center">
-                    <Share2 className="w-6 h-6 " />
-                  </div>
-                  <div className="p-3 flex border items-center justify-center text-gray-400 gap-2 border-gray-700">
-                    <BarChartHorizontalBig className="w-4 h-4" />
-                    <div className="text-md">{user?.karma || 40}</div>
-                  </div>
-                  <div className="p-3 flex items-center justify-center gap-2 text-center text-gray-400">
-                    <BarChartBigIcon className="w-4 h-4 " />
-                    <div className="text-md">25</div>
-                  </div>
+                <div className="px-6 py-3 flex flex-1 items-center justify-center text-[#525252] gap-2 border-[#525252]/30 border-r">
+                  <SvgIcon src="/icons/Post option icon.svg" />
+                  <div className="text-xs">{user?.karma || 40}</div>
+                </div>
+                <div className="px-6 py-3 flex flex-1 items-center justify-center text-[#525252] gap-2">
+                  <SvgIcon src="/icons/Polls icon.svg" />
+                  <div className="text-xs">25</div>
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        </>
+      )}
 
       {/* Username Edit Dialog */}
       <Dialog

@@ -30,9 +30,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { formatTimeAgo } from "@/lib/utils";
+import { SvgIcon } from "./SvgIcon";
 
 const replySchema = z.object({
-  content: z.string().min(1, "Reply cannot be empty").max(1000, "Reply must be less than 1000 characters"),
+  content: z
+    .string()
+    .min(1, "Reply cannot be empty")
+    .max(1000, "Reply must be less than 1000 characters"),
 });
 
 type ReplyData = z.infer<typeof replySchema>;
@@ -44,28 +48,23 @@ interface PollCommentReplyProps {
   depth?: number;
 }
 
-export default function PollCommentReply({ comment, pollId, onSuccess, depth = 0 }: PollCommentReplyProps) {
+export default function PollCommentReply({
+  comment,
+  pollId,
+  onSuccess,
+  depth = 0,
+}: PollCommentReplyProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const maxDepth = 3;
 
-  // Debug: Log what we're receiving
-  console.log(`🔍 PollCommentReply render:`, {
-    commentId: comment.id,
-    content: comment.content.substring(0, 20) + '...',
-    hasReplies: !!comment.replies,
-    repliesCount: comment.replies?.length || 0,
-    depth,
-    parentId: comment.parentId
-  });
-
   const form = useForm<ReplyData>({
     resolver: zodResolver(replySchema),
     defaultValues: {
       content: "",
-    }
+    },
   });
 
   const createReplyMutation = useMutation({
@@ -74,13 +73,11 @@ export default function PollCommentReply({ comment, pollId, onSuccess, depth = 0
         content: data.content,
         parentId: comment.id,
       };
-      console.log('🔥 CREATING POLL REPLY:', {
-        parentCommentId: comment.id,
-        content: data.content,
-        pollId,
+      const response = await apiRequest(
+        "POST",
+        `/api/polls/${pollId}/comments`,
         requestData
-      });
-      const response = await apiRequest("POST", `/api/polls/${pollId}/comments`, requestData);
+      );
       return response.json();
     },
     onSuccess: () => {
@@ -104,16 +101,20 @@ export default function PollCommentReply({ comment, pollId, onSuccess, depth = 0
 
   const deleteCommentMutation = useMutation({
     mutationFn: async (commentId: number) => {
-      const response = await fetch(`/api/comments/${commentId}`, { 
-        method: 'DELETE', 
-        credentials: 'include', 
-        headers: { Authorization: `Bearer ${await (window as any).__getDynamicToken?.()}` } 
+      const response = await fetch(`/api/comments/${commentId}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${await (
+            window as any
+          ).__getDynamicToken?.()}`,
+        },
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to delete comment');
+        throw new Error("Failed to delete comment");
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -151,63 +152,66 @@ export default function PollCommentReply({ comment, pollId, onSuccess, depth = 0
 
   const getAuthorDisplay = () => {
     const author = comment.author;
-    const username = author.username || 'User';
-    
+    const username = author.username || "User";
+
     if (author.isCompanyVerified && author.companyName) {
       return `${username} from ${author.companyName}`;
     }
-    
+
     return username;
   };
 
   return (
-    <div className="border border-[#3d3d3d] bg-[#EAEAEA05] transition-colors">
-    
+    <div className="transition-colors">
       {/* Comment Header */}
-      <div className="px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="px-9 py-4">
+        <div className="flex items-center justify-between">
           <div className="flex flex-row gap-4 items-center">
-            <span className="text-gray-300 font-semibold underline cursor-pointer hover:text-white text-base">
+            <img src="/icons/dummyAvatar.png" alt="Profile" />
+            <span className="text-[#8E8E93] font-medium text-xs underline cursor-pointer hover:text-white">
               {getAuthorDisplay()}
             </span>
-            <span className="text-gray-500 text-sm">
-              {formatTimeAgo(comment.createdAt || '')}
+            <span className="text-[#525252] text-[10px]">
+              {formatTimeAgo(comment.createdAt || "")}
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           {/* Delete Button for Author */}
-          {user?.id && comment.authorId && (user?.id === comment.authorId || user?.id === comment.authorId.toString()) && (
-            <div className="flex justify-end">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowDelete(true)}
-                className="text-red-500 hover:text-red-700 hover:bg-red-500/10"
-              >
-                <Trash className="h-4 w-4 mr-1" /> Delete
-              </Button>
-            </div>
-          )}
+          {user?.id &&
+            comment.authorId &&
+            (user?.id === comment.authorId ||
+              user?.id === comment.authorId.toString()) && (
+              <div className="flex justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowDelete(true)}
+                  className="text-red-500 hover:text-red-700 hover:bg-red-500/10"
+                >
+                  <Trash className="h-4 w-4 mr-1" /> Delete
+                </Button>
+              </div>
+            )}
         </div>
       </div>
 
       {/* Comment Content */}
-      <div className="px-6 pb-4">
-        <div className="text-gray-300 text-lg leading-relaxed">
-          <MarkdownRenderer 
+      <div className="px-9 pb-4">
+        <div className="text-[#8E8E93] text-sm leading-relaxed">
+          <MarkdownRenderer
             content={comment.content}
-            className="text-gray-300 text-lg"
+            className="text-[#8E8E93] text-sm"
           />
         </div>
       </div>
 
       {/* Action Bar */}
-      <div className="flex items-stretch border-t border-gray-700">
+      <div className="flex items-stretch border-y border-l border-[#525252]/30">
         {/* Left Side - Voting */}
         <div className="flex items-stretch">
-          <VoteButtons 
+          <VoteButtons
             targetId={comment.id}
             targetType="comment"
             upvotes={comment.upvotes}
@@ -218,7 +222,7 @@ export default function PollCommentReply({ comment, pollId, onSuccess, depth = 0
             showCount={true}
           />
         </div>
-        
+
         {/* Spacer */}
         <div className="flex-1"></div>
 
@@ -226,17 +230,24 @@ export default function PollCommentReply({ comment, pollId, onSuccess, depth = 0
         <div className="flex items-stretch">
           <div className="flex items-center">
             {/* Bookmark Button */}
-            <button className="flex items-center justify-center border-r border-gray-600 px-6 text-gray-400 hover:text-white transition-colors">
-              <Bookmark className="h-5 w-5" />
+            <button
+              aria-label="Bookmark"
+              className={`flex items-center justify-center px-4 py-3 transition-colors hover:bg-gray-800/50 text-white
+                `}
+            >
+              <SvgIcon
+                src="/icons/Post bookmark icon.svg"
+                color={"text-white"}
+                alt="bookmark"
+              />
             </button>
             {/* Reply Button */}
             {canReply && (
               <button
                 onClick={() => setShowReplyForm(!showReplyForm)}
-                className="flex items-center gap-2 px-6 text-gray-400 hover:text-white transition-colors"
+                className="flex items-center gap-2 px-6 text-white hover:bg-gray-800/50 transition-colors "
               >
-                <MessageSquare className="h-5 w-5" />
-                <span className="text-sm">Reply</span>
+                <MessageSquare className="h-[14px] w-[14px]" />
               </button>
             )}
           </div>
@@ -245,7 +256,7 @@ export default function PollCommentReply({ comment, pollId, onSuccess, depth = 0
 
       {/* Reply Form */}
       {showReplyForm && canReply && (
-        <div className="border-t border-gray-700 p-6">
+        <div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -265,11 +276,11 @@ export default function PollCommentReply({ comment, pollId, onSuccess, depth = 0
                   </FormItem>
                 )}
               />
-            
+
               <div className="flex justify-end space-x-3">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   size="sm"
                   onClick={() => {
                     setShowReplyForm(false);
@@ -279,10 +290,13 @@ export default function PollCommentReply({ comment, pollId, onSuccess, depth = 0
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   size="sm"
-                  disabled={createReplyMutation.isPending || !form.watch("content").trim()}
+                  disabled={
+                    createReplyMutation.isPending ||
+                    !form.watch("content").trim()
+                  }
                   className="px-6 py-2 bg-gray-700 text-white hover:bg-gray-600 transition-all duration-300"
                 >
                   {createReplyMutation.isPending ? (
@@ -305,8 +319,8 @@ export default function PollCommentReply({ comment, pollId, onSuccess, depth = 0
 
       {/* Nested Replies */}
       {comment.replies && comment.replies.length > 0 && (
-        <div className="border-t border-gray-700">
-          <div className="ml-8 pl-4 border-l-2 border-gray-600">
+        <div>
+          <div className="pl-4">
             {comment.replies.map((reply) => (
               <div key={reply.id} className="first:pt-4 last:pb-0">
                 <PollCommentReply
@@ -325,9 +339,12 @@ export default function PollCommentReply({ comment, pollId, onSuccess, depth = 0
       <AlertDialog open={showDelete} onOpenChange={setShowDelete}>
         <AlertDialogContent className="bg-[#1a1a1a] border border-gray-600">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete this comment?</AlertDialogTitle>
+            <AlertDialogTitle className="text-white">
+              Delete this comment?
+            </AlertDialogTitle>
             <AlertDialogDescription className="text-gray-400">
-              This action cannot be undone. This will permanently delete your comment.
+              This action cannot be undone. This will permanently delete your
+              comment.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

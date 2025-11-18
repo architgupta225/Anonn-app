@@ -5,14 +5,15 @@ import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import type { Vote } from "@shared/schema";
 import { useState, useEffect } from "react";
-import { 
-  calculateOptimisticVoteUpdate, 
-  updatePostInAllCaches, 
-  invalidateVoteQueries, 
-  submitVote, 
+import {
+  calculateOptimisticVoteUpdate,
+  updatePostInAllCaches,
+  invalidateVoteQueries,
+  submitVote,
   cancelVoteQueries,
-  type VoteState 
+  type VoteState,
 } from "@/lib/voteUtils";
+import { SvgIcon } from "./SvgIcon";
 
 interface VoteButtonsProps {
   targetId: number;
@@ -26,21 +27,23 @@ interface VoteButtonsProps {
   showCount?: boolean;
 }
 
-export default function VoteButtons({ 
-  targetId, 
-  targetType, 
-  upvotes, 
-  downvotes, 
-  userVote, 
+export default function VoteButtons({
+  targetId,
+  targetType,
+  upvotes,
+  downvotes,
+  userVote,
   onUpdate,
   size = "default",
   layout = "vertical",
-  showCount = true
+  showCount = true,
 }: VoteButtonsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [animatingVote, setAnimatingVote] = useState<"up" | "down" | null>(null);
-  
+  const [animatingVote, setAnimatingVote] = useState<"up" | "down" | null>(
+    null
+  );
+
   // Track optimistic state
   const [optimisticState, setOptimisticState] = useState<VoteState>({
     upvotes,
@@ -61,15 +64,20 @@ export default function VoteButtons({
     mutationFn: async (voteType: "up" | "down") => {
       return await submitVote({ targetId, targetType, voteType });
     },
-    
+
     onMutate: async (voteType: "up" | "down") => {
       await cancelVoteQueries(queryClient, targetId, targetType);
 
       const previousState = { ...optimisticState };
-      const newState = calculateOptimisticVoteUpdate(optimisticState, voteType, targetId, targetType);
-      
+      const newState = calculateOptimisticVoteUpdate(
+        optimisticState,
+        voteType,
+        targetId,
+        targetType
+      );
+
       setOptimisticState(newState);
-      
+
       updatePostInAllCaches(queryClient, targetId, targetType, (item: any) => ({
         ...item,
         upvotes: newState.upvotes,
@@ -79,17 +87,22 @@ export default function VoteButtons({
 
       return { previousState };
     },
-    
+
     onError: (err, voteType, context) => {
       if (context?.previousState) {
         setOptimisticState(context.previousState);
-        
-        updatePostInAllCaches(queryClient, targetId, targetType, (item: any) => ({
-          ...item,
-          upvotes: context.previousState.upvotes,
-          downvotes: context.previousState.downvotes,
-          userVote: context.previousState.userVote,
-        }));
+
+        updatePostInAllCaches(
+          queryClient,
+          targetId,
+          targetType,
+          (item: any) => ({
+            ...item,
+            upvotes: context.previousState.upvotes,
+            downvotes: context.previousState.downvotes,
+            userVote: context.previousState.userVote,
+          })
+        );
       }
 
       setAnimatingVote(null);
@@ -102,14 +115,14 @@ export default function VoteButtons({
         });
         return;
       }
-      
+
       toast({
         title: "Error",
         description: "Failed to vote. Please try again.",
         variant: "destructive",
       });
     },
-    
+
     onSuccess: (data) => {
       if (data?.updatedCounts) {
         const serverState: VoteState = {
@@ -117,18 +130,23 @@ export default function VoteButtons({
           downvotes: data.updatedCounts.downvotes,
           userVote: data.userVote || undefined,
         };
-        
+
         setOptimisticState(serverState);
-        
-        updatePostInAllCaches(queryClient, targetId, targetType, (item: any) => ({
-          ...item,
-          upvotes: serverState.upvotes,
-          downvotes: serverState.downvotes,
-          userVote: serverState.userVote,
-        }));
+
+        updatePostInAllCaches(
+          queryClient,
+          targetId,
+          targetType,
+          (item: any) => ({
+            ...item,
+            upvotes: serverState.upvotes,
+            downvotes: serverState.downvotes,
+            userVote: serverState.userVote,
+          })
+        );
       }
     },
-    
+
     onSettled: () => {
       invalidateVoteQueries(queryClient, targetId, targetType);
       setTimeout(() => setAnimatingVote(null), 300);
@@ -138,7 +156,7 @@ export default function VoteButtons({
 
   const handleVote = (voteType: "up" | "down") => {
     if (voteMutation.isPending) return;
-    
+
     setAnimatingVote(voteType);
     voteMutation.mutate(voteType);
   };
@@ -162,111 +180,137 @@ export default function VoteButtons({
     ${buttonHeight} ${buttonWidth} flex items-center justify-center gap-2 
     border-r border-gray-600 transition-colors
      text-gray-400 hover:text-white
-    ${voteMutation.isPending ? "opacity-75 cursor-not-allowed" : "cursor-pointer"}
+    ${
+      voteMutation.isPending
+        ? "opacity-75 cursor-not-allowed"
+        : "cursor-pointer"
+    }
   `;
 
-  const activeUpvoteClasses = displayUserVote?.voteType === "up" 
-    ? "text-blue-500 bg-blue-500/10" 
-    : "text-white";
+  const activeUpvoteClasses =
+    displayUserVote?.voteType === "up"
+      ? "text-blue-500 bg-blue-500/10"
+      : "text-white";
 
-  const activeDownvoteClasses = displayUserVote?.voteType === "down" 
-    ? "text-orange-500 bg-orange-500/10" 
-    : "text-white";
+  const activeDownvoteClasses =
+    displayUserVote?.voteType === "down"
+      ? "text-orange-500 bg-orange-500/10"
+      : "text-white";
 
-  if (layout === "horizontal") {
-    return (
-      <div className="flex items-center divide-x divide-gray-700">
-        {/* Upvote Button */}
-        <button
-          disabled={voteMutation.isPending}
-          onClick={() => handleVote("up")}
-          className={`${baseButtonClasses} ${activeUpvoteClasses}`}
-          title="Upvote"
-        >
-          {voteMutation.isPending && animatingVote === "up" ? (
-            <Loader2 className={`${iconSize} animate-spin`} />
-          ) : (
-            <Triangle 
-              fill={displayUserVote?.voteType === "up" ? "currentColor" : "currentColor"} 
-              className={iconSize} 
-              strokeWidth={2.5} 
-            />
-          )}
-          {showCount && (
-            <span className={`${textSize} font-normal`}>{displayUpvotes}</span>
-          )}
-        </button>
-
-        {/* Downvote Button */}
-        <button
-          disabled={voteMutation.isPending}
-          onClick={() => handleVote("down")}
-          className={`${baseButtonClasses} ${activeDownvoteClasses}`}
-          title="Downvote"
-        >
-          {voteMutation.isPending && animatingVote === "down" ? (
-            <Loader2 className={`${iconSize} animate-spin`} />
-          ) : (
-            <Triangle 
-              fill={displayUserVote?.voteType === "down" ? "currentColor" : "white"} 
-              className={`${iconSize} rotate-180`} 
-              strokeWidth={2.5}
-            />
-          )}
-          {showCount && (
-            <span className={`${textSize} font-normal`}>{displayDownvotes}</span>
-          )}
-        </button>
-      </div>
-    );
-  }
-
+  // if (layout === "horizontal") {
   return (
-    <div className="flex flex-col items-center space-y-2">
+    <div className="flex items-center justify-between px-4 md:px-0 md:items-stretch">
       {/* Upvote Button */}
       <button
         disabled={voteMutation.isPending}
         onClick={() => handleVote("up")}
-        className={`${baseButtonClasses} ${activeUpvoteClasses} border-r-0`}
+        className={`flex flex-1 justify-center md:justify-start text-center md:text-left md:flex-none items-center gap-2 md:px-6 py-3 border-r-[0.5px] border-[#525252]/30 transition-colors ${
+          displayUserVote?.voteType === "up"
+            ? "text-blue-500 bg-blue-500/5"
+            : "text-white hover:bg-gray-800/50"
+        } ${voteMutation.isPending ? "opacity-75 cursor-not-allowed" : ""}`}
         title="Upvote"
       >
         {voteMutation.isPending && animatingVote === "up" ? (
           <Loader2 className={`${iconSize} animate-spin`} />
         ) : (
-          <Triangle 
-            fill={displayUserVote?.voteType === "up" ? "currentColor" : "white"} 
-            className={iconSize} 
-            strokeWidth={2.5} 
+          <SvgIcon
+            src="/icons/up-vote.svg"
+            color={
+              displayUserVote?.voteType === "up"
+                ? "text-blue-500"
+                : "text-white"
+            }
+            alt="upvote"
           />
         )}
+        {showCount && (
+          <span className="text-xs font-normal">{displayUpvotes}</span>
+        )}
       </button>
-
-      {/* Score */}
-      {showCount && (
-        <div className="flex flex-col items-center">
-          <span className={`${textSize} font-bold text-white`}>
-            {getVoteScore()}
-          </span>
-        </div>
-      )}
 
       {/* Downvote Button */}
       <button
         disabled={voteMutation.isPending}
         onClick={() => handleVote("down")}
-        className={`${baseButtonClasses} ${activeDownvoteClasses} border-r-0`}
+        className={`flex flex-1 justify-center md:justify-start md:flex-none items-center gap-2 md:px-6 py-3 border-r-none md:border-r-[0.5px] border-[#525252]/30 transition-colors ${
+          displayUserVote?.voteType === "down"
+            ? "text-orange-500 bg-orange-500/5"
+            : "text-white hover:bg-gray-800/50"
+        } ${voteMutation.isPending ? "opacity-75 cursor-not-allowed" : ""}`}
         title="Downvote"
       >
         {voteMutation.isPending && animatingVote === "down" ? (
           <Loader2 className={`${iconSize} animate-spin`} />
         ) : (
-          <Triangle 
-            fill={displayUserVote?.voteType === "down" ? "currentColor" : "white"} 
-            className={`${iconSize} rotate-180`} 
-            strokeWidth={2.5}
+          <SvgIcon
+            src="/icons/down-vote.svg"
+            color={
+              displayUserVote?.voteType === "down"
+                ? "text-orange-500"
+                : "text-white"
+            }
+            alt="downvote"
           />
+        )}
+        {showCount && (
+          <span className="text-xs font-normal sm:inline">
+            {displayDownvotes}
+          </span>
         )}
       </button>
     </div>
   );
+  // }
+
+  // return (
+  //   <div className="flex flex-col items-center space-y-2">
+  //     {/* Upvote Button */}
+  //     <button
+  //       disabled={voteMutation.isPending}
+  //       onClick={() => handleVote("up")}
+  //       className={`${baseButtonClasses} ${activeUpvoteClasses} border-r-0`}
+  //       title="Upvote"
+  //     >
+  //       {voteMutation.isPending && animatingVote === "up" ? (
+  //         <Loader2 className={`${iconSize} animate-spin`} />
+  //       ) : (
+  //         <Triangle
+  //           fill={displayUserVote?.voteType === "up" ? "currentColor" : "white"}
+  //           className={iconSize}
+  //           strokeWidth={2.5}
+  //         />
+  //       )}
+  //     </button>
+
+  //     {/* Score */}
+  //     {showCount && (
+  //       <div className="flex flex-col items-center">
+  //         <span className={`${textSize} font-bold text-white`}>
+  //           {getVoteScore()}
+  //         </span>
+  //       </div>
+  //     )}
+
+  //     {/* Downvote Button */}
+  //     <button
+  //       disabled={voteMutation.isPending}
+  //       onClick={() => handleVote("down")}
+  //       className={`${baseButtonClasses} ${activeDownvoteClasses} border-r-0`}
+  //       title="Downvote"
+  //     >
+  //       {voteMutation.isPending && animatingVote === "down" ? (
+  //         <Loader2 className={`${iconSize} animate-spin`} />
+  //       ) : (
+  //         <Triangle
+  //           fill={
+  //             displayUserVote?.voteType === "down" ? "currentColor" : "white"
+  //           }
+  //           className={`${iconSize} rotate-180`}
+  //           strokeWidth={2.5}
+  //         />
+  //       )}
+  //     </button>
+  //   </div>
+  // );
 }

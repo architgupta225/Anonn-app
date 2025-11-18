@@ -18,6 +18,7 @@ import { apiRequest } from "@/lib/queryClient";
 import type { Bowl, PostWithDetails } from "@shared/schema";
 import PostCard from "@/components/PostCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SvgIcon } from "@/components/SvgIcon";
 
 export default function BowlContent() {
   const params = useParams();
@@ -60,7 +61,6 @@ export default function BowlContent() {
     retry: false,
   });
 
-
   // Fetch posts for this bowl
   const { data: posts, isLoading: postsLoading } = useQuery<PostWithDetails[]>({
     queryKey: ["/api/posts", { bowlId: bowl?.id, type: "discussion" }],
@@ -68,17 +68,14 @@ export default function BowlContent() {
       if (!bowl?.id) throw new Error("Bowl not loaded");
       const token = await getAccessToken();
 
-      const response = await fetch(
-        `/api/posts?bowlId=${bowl.id}&sortBy=hot`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        }
-      );
+      const response = await fetch(`/api/posts?bowlId=${bowl.id}&sortBy=hot`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
       if (!response.ok) {
         throw new Error(`${response.status}: ${response.statusText}`);
       }
@@ -225,113 +222,159 @@ export default function BowlContent() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Tab Navigation */}
-      <div className="px-6 pt-6 pb-4">
-        <div className="flex items-center gap-3 mb-6">
-          <button
-            onClick={() => setActiveTab("about")}
-            className={`px-6 py-2 rounded-full font-medium text-sm transition-all ${
-              activeTab === "about"
-                ? "bg-white text-black"
-                : "bg-transparent text-gray-500 hover:text-gray-300"
-            }`}
-          >
-            ABOUT
-          </button>
-          <button
-            onClick={() => setActiveTab("posts")}
-            className={`px-6 py-2 rounded-full font-medium text-sm transition-all ${
-              activeTab === "posts"
-                ? "bg-white text-black"
-                : "bg-transparent text-gray-500 hover:text-gray-300"
-            }`}
-          >
-            POSTS
-          </button>
-          <button
-            onClick={() => setActiveTab("polls")}
-            className={`px-6 py-2 rounded-full font-medium text-sm transition-all ${
-              activeTab === "polls"
-                ? "bg-white text-black"
-                : "bg-transparent text-gray-500 hover:text-gray-300"
-            }`}
-          >
-            POLLS
-          </button>
+    <div className="max-w-[1400px] mx-auto px-[4%]">
+      <div className="flex-1 flex flex-col gap-6 mt-9 min-w-[200px] mx-auto lg:mx-0">
+        {/* Tab Navigation */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-[10px] text-xs text-[#525252]">
+            <button
+              onClick={() => setActiveTab("about")}
+              className={`px-4 py-4 rounded-full font-medium text-xs transition-all ${
+                activeTab === "about"
+                  ? "bg-[#E8EAE9]"
+                  : "bg-[#1B1C20] hover:bg-[#E8EAE9]"
+              }`}
+            >
+              ABOUT
+            </button>
+            <button
+              onClick={() => setActiveTab("posts")}
+              className={`px-4 py-4 rounded-full font-medium text-xs transition-all ${
+                activeTab === "posts"
+                  ? "bg-[#E8EAE9]"
+                  : "bg-[#1B1C20] hover:bg-[#E8EAE9]"
+              }`}
+            >
+              POSTS
+            </button>
+            <button
+              onClick={() => setActiveTab("polls")}
+              className={`px-4 py-4 rounded-full font-medium text-xs transition-all ${
+                activeTab === "polls"
+                  ? "bg-[#E8EAE9]"
+                  : "bg-[#1B1C20] hover:bg-[#E8EAE9]"
+              }`}
+            >
+              POLLS
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="px-6">
-        {activeTab === "about" && (
-          <div className="space-y-6">
-            {/* Bowl Header */}
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-normal text-white">
-                /{bowl?.name || "PRIVACY"}
-              </h1>
-              {isAuthenticated && (
-                <button
-                  onClick={() => followBowlMutation.mutate()}
-                  disabled={followBowlMutation.isPending || followLoading}
-                  className="px-4 py-2 bg-white text-black font-medium rounded flex items-center gap-2 hover:bg-gray-200 transition-colors disabled:opacity-50"
-                >
-                  {isUserFollowing ? (
-                    <>
-                      <Minus className="h-4 w-4" />
-                      LEAVE
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="h-4 w-4" />
-                      JOIN
-                    </>
-                  )}
-                </button>
-              )}
+        {/* Content */}
+        <div>
+          {activeTab === "about" && (
+            <div className="space-y-6">
+              {/* Bowl Header */}
+              <div className="flex items-center justify-between">
+                <div className="text-xl font-normal font-spacemono text-[#E8EAE9]">
+                  /{bowl?.name || "PRIVACY"}
+                </div>
+                {isAuthenticated && (
+                  <button
+                    onClick={() => followBowlMutation.mutate()}
+                    disabled={followBowlMutation.isPending || followLoading}
+                    className="px-6 py-3 bg-[#E8EAE9] text-[#525252] text-xs font-normal flex items-center gap-2 hover:bg-gray-200 transition-colors disabled:opacity-50"
+                  >
+                    {isUserFollowing ? (
+                      <>
+                        <Minus className="h-4 w-4" />
+                        LEAVE
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4" />
+                        JOIN
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* Stats */}
+              <div className="flex text-[#525252] border-[0.2px] border-[#525252]/30">
+                <div className="flex items-center px-6 py-3 gap-2">
+                  <SvgIcon src="/icons/Profile-sidebar icon.svg" />
+                  <span className="text-sm">{formatCount(stats.members)}</span>
+                </div>
+                <div className="flex flex-1 justify-center items-center px-12 py-4 gap-2 border-y-0 border-[0.2px] border-[#525252]/30">
+                  <SvgIcon src="/icons/Post option icon.svg" />
+                  <span className="text-sm">{formatCount(stats.posts)}</span>
+                </div>
+                <div className="flex flex-1 justify-center items-center px-8 py-4 gap-2">
+                  <SvgIcon src="/icons/Polls icon.svg" />
+                  <span className="text-sm">{formatCount(stats.online)}</span>
+                </div>
+              </div>
+
+              {/* Description */}
+              <p className="text-[#8E8E93] text-xs leading-relaxed">
+                {bowl?.description ||
+                  "Welcome to the Web3 Privacy Collective, a community focused on privacy in the decentralized web. We unite enthusiasts and developers who believe privacy is a fundamental right. Join us for discussions, workshops, and events that empower individuals to secure their online presence."}
+              </p>
+
+              {/* Admin Section */}
+              <div>
+                <div className="text-[#E8EAE9] text-xs font-medium mb-6 uppercase">
+                  ADMIN
+                </div>
+                <div className="flex flex-col items-start gap-2 border border-[#525252]/30 w-fit py-5 px-6">
+                  <div className="w-16 h-16 bg-[#fb923c]"></div>
+                  <span className="text-[#8E8E93] text-xs">
+                    {bowl?.createdBy ? bowl.createdBy : "tery_jang"}
+                  </span>
+                </div>
+              </div>
+
+              {/* TOP CONTENT Section */}
+              <div>
+                <div className="text-[#E8EAE9] text-xs font-medium mb-4 uppercase">
+                  TOP CONTENT
+                </div>
+                {postsLoading ? (
+                  <>
+                    {[1, 2, 3].map((i) => (
+                      <div
+                        key={i}
+                        className="bg-black border border-gray-800 rounded-lg overflow-hidden mb-4"
+                      >
+                        <div className="bg-[#3a3a3a] p-4">
+                          <Skeleton className="h-6 w-1/4 bg-gray-700" />
+                        </div>
+                        <div className="p-4">
+                          <Skeleton className="h-6 w-3/4 mb-4 bg-gray-700" />
+                          <Skeleton className="h-4 w-full mb-2 bg-gray-700" />
+                          <Skeleton className="h-4 w-full mb-2 bg-gray-700" />
+                          <Skeleton className="h-4 w-2/3 bg-gray-700" />
+                        </div>
+                        <div className="border-t border-gray-700 p-4">
+                          <Skeleton className="h-8 w-32 bg-gray-700" />
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                ) : posts && posts.length > 0 ? (
+                  <div className="space-y-4">
+                    {posts.slice(0, 3).map((post) => (
+                      <PostCard key={post.id} post={post} onUpdate={() => {}} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-[#3a3a3a] p-12 text-center rounded">
+                    <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-600" />
+                    <p className="text-gray-400">
+                      No posts yet in this channel
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
+          )}
 
-            {/* Stats */}
-            <div className="flex justify-between gap-16 text-gray-500 border-[0.2px] border-gray-700">
-              <div className="flex items-center px-8 py-4 gap-2">
-                <Users className="h-4 w-4" />
-                <span className="text-sm">{formatCount(stats.members)}</span>
+          {activeTab === "posts" && (
+            <div className="space-y-6">
+              <div className="text-[#E8EAE9] text-xs font-medium uppercase">
+                POSTS
               </div>
-              <div className="flex items-center px-12 py-4 gap-2 border-y-0 border-[0.2px] border-gray-700">
-                <MessageSquare className="h-4 w-4" />
-                <span className="text-sm">{formatCount(stats.posts)}</span>
-              </div>
-              <div className="flex items-center px-8 py-4 gap-2">
-                <BarChart3 className="h-4 w-4" />
-                <span className="text-sm">{formatCount(stats.online)}</span>
-              </div>
-            </div>
-
-            {/* Description */}
-            <p className="text-gray-400 text-sm leading-relaxed">
-              {bowl?.description ||
-                "Welcome to the Web3 Privacy Collective, a community focused on privacy in the decentralized web. We unite enthusiasts and developers who believe privacy is a fundamental right. Join us for discussions, workshops, and events that empower individuals to secure their online presence."}
-            </p>
-
-            {/* Admin Section */}
-            <div>
-              <h3 className="text-white text-sm font-semibold mb-4 uppercase">
-                ADMIN
-              </h3>
-              <div className="flex flex-col items-start gap-2">
-                <div className="w-16 h-16 bg-[#fb923c] rounded"></div>
-                <span className="text-gray-400 text-xs">
-                  {bowl?.createdBy ? bowl.createdBy : "tery_jang"}
-                </span>
-              </div>
-            </div>
-
-            {/* TOP CONTENT Section */}
-            <div>
-              <h3 className="text-white text-sm font-semibold mb-4 uppercase">
-                TOP CONTENT
-              </h3>
               {postsLoading ? (
                 <>
                   {[1, 2, 3].map((i) => (
@@ -356,7 +399,7 @@ export default function BowlContent() {
                 </>
               ) : posts && posts.length > 0 ? (
                 <div className="space-y-4">
-                  {posts.slice(0, 3).map((post) => (
+                  {bowlPosts.map((post) => (
                     <PostCard key={post.id} post={post} onUpdate={() => {}} />
                   ))}
                 </div>
@@ -367,92 +410,50 @@ export default function BowlContent() {
                 </div>
               )}
             </div>
-          </div>
-        )}
+          )}
 
-        {activeTab === "posts" && (
-          <div className="space-y-6">
-            <h3 className="text-white text-sm font-semibold uppercase">
-              POSTS
-            </h3>
-            {postsLoading ? (
-              <>
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="bg-black border border-gray-800 rounded-lg overflow-hidden mb-4"
-                  >
-                    <div className="bg-[#3a3a3a] p-4">
-                      <Skeleton className="h-6 w-1/4 bg-gray-700" />
-                    </div>
-                    <div className="p-4">
-                      <Skeleton className="h-6 w-3/4 mb-4 bg-gray-700" />
-                      <Skeleton className="h-4 w-full mb-2 bg-gray-700" />
-                      <Skeleton className="h-4 w-full mb-2 bg-gray-700" />
-                      <Skeleton className="h-4 w-2/3 bg-gray-700" />
-                    </div>
-                    <div className="border-t border-gray-700 p-4">
-                      <Skeleton className="h-8 w-32 bg-gray-700" />
-                    </div>
-                  </div>
-                ))}
-              </>
-            ) : posts && posts.length > 0 ? (
-              <div className="space-y-4">
-                {bowlPosts.map((post) => (
-                  <PostCard key={post.id} post={post} onUpdate={() => {}} />
-                ))}
+          {activeTab === "polls" && (
+            <div className="space-y-6">
+              <div className="text-[#E8EAE9] text-xs font-semibold uppercase">
+                POLLS
               </div>
-            ) : (
-              <div className="bg-[#3a3a3a] p-12 text-center rounded">
-                <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-600" />
-                <p className="text-gray-400">No posts yet in this channel</p>
-              </div>
-            )}
-          </div>
-        )}
 
-        {activeTab === "polls" && (
-          <div className="space-y-6">
-            <h3 className="text-white text-sm font-semibold uppercase">
-              POLLS
-            </h3>
-
-            {postsLoading ? (
-              <>
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="bg-black border border-gray-800 rounded-lg overflow-hidden mb-4"
-                  >
-                    <div className="bg-[#3a3a3a] p-4">
-                      <Skeleton className="h-6 w-1/4 bg-gray-700" />
+              {postsLoading ? (
+                <>
+                  {[1, 2, 3].map((i) => (
+                    <div
+                      key={i}
+                      className="bg-black border border-gray-800 rounded-lg overflow-hidden mb-4"
+                    >
+                      <div className="bg-[#3a3a3a] p-4">
+                        <Skeleton className="h-6 w-1/4 bg-gray-700" />
+                      </div>
+                      <div className="p-4">
+                        <Skeleton className="h-6 w-3/4 mb-4 bg-gray-700" />
+                        <Skeleton className="h-4 w-full mb-2 bg-gray-700" />
+                        <Skeleton className="h-4 w-full mb-2 bg-gray-700" />
+                        <Skeleton className="h-4 w-2/3 bg-gray-700" />
+                      </div>
+                      <div className="border-t border-gray-700 p-4">
+                        <Skeleton className="h-8 w-32 bg-gray-700" />
+                      </div>
                     </div>
-                    <div className="p-4">
-                      <Skeleton className="h-6 w-3/4 mb-4 bg-gray-700" />
-                      <Skeleton className="h-4 w-full mb-2 bg-gray-700" />
-                      <Skeleton className="h-4 w-full mb-2 bg-gray-700" />
-                      <Skeleton className="h-4 w-2/3 bg-gray-700" />
-                    </div>
-                    <div className="border-t border-gray-700 p-4">
-                      <Skeleton className="h-8 w-32 bg-gray-700" />
-                    </div>
-                  </div>
-                ))}
-              </>
-            ) : bowlPolls && bowlPolls.length > 0 ? (
-              <div className="space-y-4">
-                {bowlPolls.map((post) => (
-                  <PostCard key={post.id} post={post} onUpdate={() => {}} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 bg-[#3a3a3a] rounded">
-                <p className="text-gray-400">No polls available</p>
-              </div>
-            )}
-          </div>
-        )}
+                  ))}
+                </>
+              ) : bowlPolls && bowlPolls.length > 0 ? (
+                <div className="space-y-4">
+                  {bowlPolls.map((post) => (
+                    <PostCard key={post.id} post={post} onUpdate={() => {}} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-[#3a3a3a] rounded">
+                  <p className="text-gray-400">No polls available</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
